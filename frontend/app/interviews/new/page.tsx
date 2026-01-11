@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { templatesAPI, interviewsAPI } from '@/lib/api';
 import Link from 'next/link';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
-export default function NewInterviewPage() {
+function NewInterviewContent() {
   const { token } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -390,5 +390,20 @@ export default function NewInterviewPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function NewInterviewPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFE2AF] mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading...</p>
+        </div>
+      </div>
+    }>
+      <NewInterviewContent />
+    </Suspense>
   );
 }
