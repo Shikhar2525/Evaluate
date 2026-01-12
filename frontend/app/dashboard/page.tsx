@@ -10,22 +10,22 @@ import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function DashboardPage() {
-  const { user, token, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const { data: templates } = useAsyncData<any[]>(
     () => templatesAPI.list(),
-    [token],
+    [user],
   );
   const { data: interviews } = useAsyncData<any[]>(
     () => interviewsAPI.list(),
-    [token],
+    [user],
   );
 
   useEffect(() => {
-    if (!loading && !token) {
+    if (!loading && !user) {
       router.push('/sign-in');
     }
-  }, [token, loading, router]);
+  }, [user, loading, router]);
 
   const totalTemplates = templates?.length || 0;
   const totalInterviews = interviews?.length || 0;

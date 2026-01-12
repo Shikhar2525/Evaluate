@@ -9,7 +9,7 @@ import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 
 export default function InterviewsPage() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [filterStatus, setFilterStatus] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -17,14 +17,14 @@ export default function InterviewsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const { data: interviews, refetch } = useAsyncData<any[]>(
     () => interviewsAPI.list(),
-    [token],
+    [user],
   );
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       router.push('/sign-in');
     }
-  }, [token, router]);
+  }, [user, router]);
 
   const filteredInterviews = (interviews || [])
     .filter((interview: any) =>

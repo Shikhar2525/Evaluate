@@ -7,7 +7,7 @@ import { interviewsAPI } from '@/lib/api';
 import Link from 'next/link';
 
 export default function InterviewConductPage() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const interviewId = params.id as string;
@@ -43,7 +43,7 @@ export default function InterviewConductPage() {
 
   // Fetch interview on mount
   useEffect(() => {
-    if (!token || !interviewId) return;
+    if (!user || !interviewId) return;
 
     const fetchInterview = async () => {
       try {
@@ -56,11 +56,26 @@ export default function InterviewConductPage() {
     };
 
     fetchInterview();
-  }, [token, interviewId, router]);
+  }, [user, interviewId, router]);
 
-  const rawQuestions = interview?.questions || interview?.interviewQuestions || [];
+  const rawQuestions = (() => {
+    const questions: any[] = [];
+    if (interview?.sections) {
+      Object.values(interview.sections).forEach((section: any) => {
+        if (section.questions) {
+          Object.values(section.questions).forEach((question: any) => {
+            questions.push({
+              ...question,
+              sectionId: section.id,
+            });
+          });
+        }
+      });
+    }
+    return questions;
+  })();
   
-  // Sort questions by their order field set by backend (which respects sectionOrder)
+  // Sort questions by their order field
   const allQuestions = rawQuestions.length > 0
     ? [...rawQuestions].sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
     : rawQuestions;
@@ -156,7 +171,7 @@ export default function InterviewConductPage() {
     }
     
     const loadFeedback = async () => {
-      if (!currentQuestion?.id) {
+      if (!currentQuestion?.id || !currentQuestion?.sectionId) {
         setFeedback({ notes: '', rating: 0 });
         setLoadingFeedback(false);
         return;
@@ -164,7 +179,7 @@ export default function InterviewConductPage() {
       
       setLoadingFeedback(true);
       try {
-        const response = await interviewsAPI.getFeedback(currentQuestion.id);
+        const response = await interviewsAPI.getFeedback(interviewId, currentQuestion.sectionId, currentQuestion.id);
         if (response?.data) {
           setFeedback({
             notes: response.data.notes || '',
@@ -196,7 +211,12 @@ export default function InterviewConductPage() {
         rating: rating,
       };
 
-      await interviewsAPI.saveFeedback(currentInterviewQuestion.id, feedbackToSave);
+      await interviewsAPI.saveFeedback(
+        interviewId,
+        currentInterviewQuestion.sectionId,
+        currentInterviewQuestion.id,
+        feedbackToSave
+      );
 
       // Update local state
       const updatedQuestions = allQuestions.map((q: any, idx: number) =>
@@ -219,7 +239,12 @@ export default function InterviewConductPage() {
     if (!interview || !allQuestions[currentQuestionIndex]) return;
 
     try {
-      await interviewsAPI.skipQuestion(interviewId, allQuestions[currentQuestionIndex].id);
+      const currentQuestion = allQuestions[currentQuestionIndex];
+      await interviewsAPI.skipQuestion(
+        interviewId,
+        currentQuestion.sectionId,
+        currentQuestion.id
+      );
 
       const updatedQuestions = allQuestions.map((q: any, idx: number) =>
         idx === currentQuestionIndex ? { ...q, skipped: true } : q

@@ -1,4 +1,7 @@
 import { create } from 'zustand';
+import { firebaseAuthService } from './firebase-service';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 
 interface User {
   id: string;
@@ -9,41 +12,47 @@ interface User {
 
 interface AuthStore {
   user: User | null;
-  token: string | null;
-  setAuth: (user: User, token: string) => void;
+  isLoading: boolean;
+  setAuth: (user: User) => void;
   clearAuth: () => void;
-  restoreFromStorage: () => void;
+  initializeAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
-  token: null,
-  setAuth: (user, token) => {
-    // Save to localStorage
+  isLoading: true,
+  setAuth: (user) => {
     localStorage.setItem('user', JSON.stringify(user));
-    localStorage.setItem('token', token);
-    set({ user, token });
+    set({ user });
   },
   clearAuth: () => {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    set({ user: null, token: null });
+    set({ user: null });
   },
-  restoreFromStorage: () => {
-    try {
-      const user = localStorage.getItem('user');
-      const token = localStorage.getItem('token');
-      if (user && token) {
-        set({ 
-          user: JSON.parse(user), 
-          token 
-        });
-      }
-    } catch (error) {
-      console.error('Failed to restore auth from storage:', error);
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-    }
+  initializeAuth: async () => {
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+          // Get user data from database
+          const user = await firebaseAuthService.getCurrentUser();
+          if (user) {
+            set({
+              user: {
+                id: user.uid,
+                email: user.email || '',
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+              },
+              isLoading: false,
+            });
+          }
+        } else {
+          set({ user: null, isLoading: false });
+        }
+        unsubscribe();
+        resolve();
+      });
+    });
   },
 }));
 

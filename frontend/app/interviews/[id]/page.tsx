@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 
 export default function InterviewDetailPage() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const interviewId = params.id as string;
@@ -20,7 +20,7 @@ export default function InterviewDetailPage() {
   const [filterTab, setFilterTab] = useState<'all' | 'answered' | 'skipped'>('all');
 
   useEffect(() => {
-    if (!token || !interviewId) return;
+    if (!user || !interviewId) return;
 
     const fetchInterview = async () => {
       try {
@@ -34,7 +34,7 @@ export default function InterviewDetailPage() {
     };
 
     fetchInterview();
-  }, [token, interviewId, router]);
+  }, [user, interviewId, router]);
 
   const handleSaveNotes = async () => {
     try {

@@ -11,21 +11,21 @@ import RichTextEditor from '@/lib/components/rich-text-editor';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function TemplatesPage() {
-  const { user, token, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTemplate, setNewTemplate] = useState({ name: '', description: '' });
   const [formLoading, setFormLoading] = useState(false);
   const { data: templates } = useAsyncData<any[]>(
     () => templatesAPI.list(),
-    [token],
+    [user],
   );
 
   useEffect(() => {
-    if (!loading && !token) {
+    if (!loading && !user) {
       router.push('/sign-in');
     }
-  }, [token, loading, router]);
+  }, [user, loading, router]);
 
   const handleCreateTemplate = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -10,7 +10,7 @@ import RichTextEditor from '@/lib/components/rich-text-editor';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function TemplateDetailPage() {
-  const { user, token, loading } = useAuth();
+  const { user, loading } = useAuth();
   const { clearAuth } = useAuthStore();
   const router = useRouter();
   const params = useParams();
@@ -34,12 +34,12 @@ export default function TemplateDetailPage() {
   const [showDeleteSectionConfirm, setShowDeleteSectionConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !token) {
+    if (!loading && !user) {
       router.push('/sign-in');
       return;
     }
 
-    if (!token) return;
+    if (!user) return;
 
     const fetchTemplate = async () => {
       try {
@@ -55,7 +55,7 @@ export default function TemplateDetailPage() {
     };
 
     fetchTemplate();
-  }, [token, templateId, router]);
+  }, [user, templateId, router]);
 
   // Validate question text and difficulty in real-time (only if user has made changes)
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function TemplateDetailPage() {
   const handleDeleteSection = async (sectionId: string) => {
     try {
       console.log('Attempting to delete section:', sectionId);
-      await templatesAPI.deleteSection(sectionId);
+      await templatesAPI.deleteSection(templateId, sectionId);
       setTemplate({
         ...template,
         sections: template.sections.filter((s: any) => s.id !== sectionId),
@@ -138,7 +138,7 @@ export default function TemplateDetailPage() {
     if (!newQuestion.text.trim()) return;
 
     try {
-      const response = await templatesAPI.addQuestion(sectionId, newQuestion);
+      const response = await templatesAPI.addQuestion(templateId, sectionId, newQuestion);
       setTemplate({
         ...template,
         sections: template.sections.map((s: any) =>
@@ -156,7 +156,13 @@ export default function TemplateDetailPage() {
   const handleDeleteQuestion = async (questionId: string) => {
     try {
       console.log('Attempting to delete question:', questionId);
-      const response = await templatesAPI.deleteQuestion(questionId);
+      // Find the section containing this question
+      const section = template.sections.find((s: any) =>
+        s.questions?.some((q: any) => q.id === questionId)
+      );
+      if (!section) throw new Error('Section not found');
+      
+      const response = await templatesAPI.deleteQuestion(templateId, section.id, questionId);
       console.log('Delete response:', response);
       
       setTemplate({
@@ -180,7 +186,13 @@ export default function TemplateDetailPage() {
 
   const handleUpdateQuestion = async (questionId: string) => {
     try {
-      await templatesAPI.updateQuestion(questionId, editQuestionValues);
+      // Find the section containing this question
+      const section = template.sections.find((s: any) =>
+        s.questions?.some((q: any) => q.id === questionId)
+      );
+      if (!section) throw new Error('Section not found');
+      
+      await templatesAPI.updateQuestion(templateId, section.id, questionId, editQuestionValues);
       setTemplate({
         ...template,
         sections: template.sections.map((s: any) => ({

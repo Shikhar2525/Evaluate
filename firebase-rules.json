@@ -1,0 +1,50 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "templates": {
+      "$templateId": {
+        ".read": "root.child('templates').child($templateId).child('userId').val() === auth.uid",
+        ".write": "root.child('templates').child($templateId).child('userId').val() === auth.uid",
+        "sections": {
+          "$sectionId": {
+            ".read": "root.child('templates').child($templateId).child('userId').val() === auth.uid",
+            ".write": "root.child('templates').child($templateId).child('userId').val() === auth.uid",
+            "questions": {
+              "$questionId": {
+                ".read": "root.child('templates').child($templateId).child('userId').val() === auth.uid",
+                ".write": "root.child('templates').child($templateId).child('userId').val() === auth.uid"
+              }
+            }
+          }
+        }
+      }
+    },
+    "interviews": {
+      "$interviewId": {
+        ".read": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+        ".write": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+        "sections": {
+          "$sectionId": {
+            ".read": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+            ".write": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+            "questions": {
+              "$questionId": {
+                ".read": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+                ".write": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+                "feedback": {
+                  ".read": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid",
+                  ".write": "root.child('interviews').child($interviewId).child('userId').val() === auth.uid"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -8,7 +8,7 @@ import Link from 'next/link';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 function NewInterviewContent() {
-  const { token } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const templateId = searchParams.get('templateId');
@@ -21,7 +21,7 @@ function NewInterviewContent() {
   const [sections, setSections] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!token) {
+    if (!user) {
       router.push('/sign-in');
       return;
     }
@@ -53,7 +53,7 @@ function NewInterviewContent() {
     };
 
     fetchTemplate();
-  }, [token, templateId, router]);
+  }, [user, templateId, router]);
 
   const handleDragStart = (e: React.DragEvent, section: any) => {
     setDraggedSection(section);

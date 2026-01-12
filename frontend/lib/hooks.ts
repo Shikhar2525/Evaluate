@@ -3,40 +3,69 @@
 import { useCallback, useEffect, useState } from 'react';
 import { authAPI } from './api';
 import { useAuthStore } from './store';
+import { firebaseAuthService } from './firebase-service';
 
 export const useAuth = () => {
-  const { user, token, setAuth, clearAuth, restoreFromStorage } = useAuthStore();
+  const { user, setAuth, clearAuth, isLoading } = useAuthStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore from localStorage on mount
-    restoreFromStorage();
-    setLoading(false);
-  }, [restoreFromStorage]);
+    // Initialize auth from Firebase
+    const initAuth = async () => {
+      try {
+        const currentUser = await firebaseAuthService.getCurrentUser();
+        if (currentUser) {
+          setAuth({
+            id: currentUser.uid,
+            email: currentUser.email || '',
+            firstName: currentUser.firstName || '',
+            lastName: currentUser.lastName || '',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+  }, [setAuth]);
 
   const signUp = useCallback(
     async (email: string, password: string, firstName: string, lastName: string) => {
-      const response = await authAPI.signUp({ email, password, firstName, lastName });
-      setAuth(response.data.user, response.data.accessToken);
-      return response.data;
+      const user = await authAPI.signUp({ email, password, firstName, lastName });
+      setAuth({
+        id: user.data.user.uid,
+        email: user.data.user.email || '',
+        firstName: user.data.user.firstName || '',
+        lastName: user.data.user.lastName || '',
+      });
+      return user.data;
     },
     [setAuth],
   );
 
   const signIn = useCallback(
     async (email: string, password: string) => {
-      const response = await authAPI.signIn({ email, password });
-      setAuth(response.data.user, response.data.accessToken);
-      return response.data;
+      const user = await authAPI.signIn({ email, password });
+      setAuth({
+        id: user.data.user.uid,
+        email: user.data.user.email || '',
+        firstName: user.data.user.firstName || '',
+        lastName: user.data.user.lastName || '',
+      });
+      return user.data;
     },
     [setAuth],
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await firebaseAuthService.signOut();
     clearAuth();
   }, [clearAuth]);
 
-  return { user, token, loading, signUp, signIn, logout };
+  return { user, loading, signUp, signIn, logout };
 };
 
 export const useAsyncData = <T,>(
