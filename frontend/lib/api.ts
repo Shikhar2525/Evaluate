@@ -74,7 +74,6 @@ export const interviewsAPI = {
   updateOverallNotes: (id: string, notes: string) =>
     apiClient.put(`/interviews/${id}/overall-notes`, { overallNotes: notes }),
   delete: (id: string) => apiClient.delete(`/interviews/${id}`),
-  getAISummary: (id: string) => apiClient.get(`/interviews/${id}/ai-summary`),
 
   getQuestion: (interviewId: string, index: number) =>
     apiClient.get(`/interviews/${interviewId}/questions/${index}`),

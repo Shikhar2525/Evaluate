@@ -175,11 +175,35 @@ export class TemplatesService {
         throw new NotFoundException('Unauthorized to delete this question');
       }
 
-      // Delete interview questions associated with this template question
-      // This will cascade delete feedback due to the OneToOne relationship
-      await this.interviewQuestionRepository.delete({ questionId });
+      // Get all interview questions using this template question
+      const interviewQuestions = await this.interviewQuestionRepository.find({
+        where: { questionId },
+        relations: ['interview'],
+      });
 
-      // Now delete the question
+      // Delete interview questions from in-progress interviews completely
+      const inProgressQuestionIds = interviewQuestions
+        .filter((iq) => iq.interview.status === 'in_progress')
+        .map((iq) => iq.id);
+
+      if (inProgressQuestionIds.length > 0) {
+        await this.interviewQuestionRepository.delete(inProgressQuestionIds);
+      }
+
+      // For completed interviews, set questionId to NULL but keep the record
+      // (it's protected by snapshot data)
+      const completedQuestionIds = interviewQuestions
+        .filter((iq) => iq.interview.status === 'completed')
+        .map((iq) => iq.id);
+
+      if (completedQuestionIds.length > 0) {
+        await this.interviewQuestionRepository.update(
+          { id: In(completedQuestionIds) },
+          { questionId: null },
+        );
+      }
+
+      // Now delete the question - no more foreign key constraints
       await this.questionRepository.delete(questionId);
       return { message: 'Question deleted successfully' };
     } catch (error) {

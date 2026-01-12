@@ -17,7 +17,7 @@ export class InterviewQuestion {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
+  @Column({ nullable: true })
   questionId: string;
 
   @Column()
@@ -28,6 +28,10 @@ export class InterviewQuestion {
 
   @Column({ default: false })
   skipped: boolean;
+
+  // Snapshot of question data at the time of interview creation
+  @Column({ type: 'text', nullable: true })
+  questionSnapshot: string; // JSON string of question data
 
   @CreateDateColumn()
   createdAt: Date;

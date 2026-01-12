@@ -16,8 +16,6 @@ export default function InterviewDetailPage() {
   const [loading, setLoading] = useState(true);
   const [overallNotes, setOverallNotes] = useState('');
   const [editingNotes, setEditingNotes] = useState(false);
-  const [aiSummary, setAiSummary] = useState<string | null>(null);
-  const [loadingAiSummary, setLoadingAiSummary] = useState(false);
 
   useEffect(() => {
     if (!token || !interviewId) return;
@@ -28,9 +26,6 @@ export default function InterviewDetailPage() {
         setInterview(response.data);
         setOverallNotes(response.data.overallNotes || '');
         setLoading(false);
-        
-        // Auto-generate AI summary
-        await generateAISummary();
       } catch {
         router.push('/interviews');
       }
@@ -51,29 +46,7 @@ export default function InterviewDetailPage() {
     }
   };
 
-  const handleGenerateAISummary = async () => {
-    setLoadingAiSummary(true);
-    try {
-      const response = await interviewsAPI.getAISummary(interviewId);
-      setAiSummary(response.data.sectionSummaries);
-    } catch (err) {
-      console.error('Failed to generate AI summary');
-    } finally {
-      setLoadingAiSummary(false);
-    }
-  };
 
-  const generateAISummary = async () => {
-    setLoadingAiSummary(true);
-    try {
-      const response = await interviewsAPI.getAISummary(interviewId);
-      setAiSummary(response.data.summary);
-    } catch (err) {
-      console.error('Failed to generate AI summary');
-    } finally {
-      setLoadingAiSummary(false);
-    }
-  };
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -142,81 +115,6 @@ export default function InterviewDetailPage() {
             <p className="text-3xl font-bold text-[#FFE2AF] mt-2">{averageRating}/5</p>
             {interview.status === 'aborted' && <p className="text-xs text-[#FFE2AF]/70 mt-2">Interview was aborted</p>}
           </div>
-        </div>
-
-        {/* AI Summary Section */}
-        <div className="bg-gradient-to-br from-[#3F9AAE]/20 to-[#79C9C5]/10 rounded-lg border border-[#79C9C5]/30 p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-white flex items-center">
-              <span className="mr-2">✨</span> AI-Generated Summary
-            </h2>
-            {aiSummary && (
-              <button
-                onClick={handleGenerateAISummary}
-                disabled={loadingAiSummary}
-                className="px-4 py-2 bg-gradient-to-r from-[#F96E5B] to-[#FFE2AF] text-slate-900 rounded-md hover:shadow-lg hover:shadow-[#F96E5B]/50 font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loadingAiSummary ? 'Generating...' : 'Regenerate Summary'}
-              </button>
-            )}
-          </div>
-
-          {loadingAiSummary ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="flex flex-col items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#79C9C5] border-t-[#FFE2AF] mb-2"></div>
-                <p className="text-[#79C9C5] text-sm">Analyzing interview data...</p>
-              </div>
-            </div>
-          ) : aiSummary ? (
-            <div className="space-y-6">
-              {Array.isArray(aiSummary) && aiSummary.length > 0 ? (
-                aiSummary.map((section: any, idx: number) => (
-                  <div key={idx} className="bg-slate-900/50 rounded-lg border border-[#79C9C5]/20 p-6">
-                    <h3 className="text-lg font-bold text-[#FFE2AF] mb-4">{section.sectionTitle}</h3>
-                    
-                    {/* Strengths */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-emerald-400 mb-2">Strengths:</h4>
-                      {section.strengths && section.strengths.length > 0 ? (
-                        <ul className="space-y-2">
-                          {section.strengths.map((strength: string, i: number) => (
-                            <li key={i} className="text-sm text-slate-200 ml-4 flex items-start">
-                              <span className="text-emerald-400 mr-2">✓</span>
-                              <span>{strength}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 ml-4 italic">No major strengths identified in this section</p>
-                      )}
-                    </div>
-
-                    {/* Gaps */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-amber-400 mb-2">Gaps:</h4>
-                      {section.gaps && section.gaps.length > 0 ? (
-                        <ul className="space-y-2">
-                          {section.gaps.map((gap: string, i: number) => (
-                            <li key={i} className="text-sm text-slate-200 ml-4 flex items-start">
-                              <span className="text-amber-400 mr-2">•</span>
-                              <span>{gap}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-slate-400 ml-4 italic">No major gaps identified in this section</p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-slate-400 italic">No summary data available</p>
-              )}
-            </div>
-          ) : (
-            <p className="text-slate-400 italic">Generating summary...</p>
-          )}
         </div>
 
         {/* Interview Date */}

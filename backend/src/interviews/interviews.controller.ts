@@ -100,9 +100,4 @@ export class InterviewsController {
   deleteFeedback(@Param('feedbackId') feedbackId: string, @Request() req: any) {
     return this.interviewsService.deleteFeedback(feedbackId, req.user.sub);
   }
-
-  @Get(':id/ai-summary')
-  generateAISummary(@Param('id') id: string, @Request() req: any) {
-    return this.interviewsService.generateAISummary(id, req.user.sub);
-  }
 }

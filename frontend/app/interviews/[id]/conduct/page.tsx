@@ -17,7 +17,7 @@ export default function InterviewConductPage() {
   const [loading, setLoading] = useState(true);
   const [showSummary, setShowSummary] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [startTime] = useState(Date.now());
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [completingInterview, setCompletingInterview] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState<'abort' | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -28,6 +28,18 @@ export default function InterviewConductPage() {
   const [previousSectionId, setPreviousSectionId] = useState<string | null>(null);
   const [showSectionNotification, setShowSectionNotification] = useState(false);
   const [sectionNotificationText, setSectionNotificationText] = useState('');
+
+  // Initialize start time from localStorage
+  useEffect(() => {
+    const storedStartTime = localStorage.getItem(`interview_start_time_${interviewId}`);
+    if (storedStartTime) {
+      setStartTime(parseInt(storedStartTime, 10));
+    } else {
+      const newStartTime = Date.now();
+      setStartTime(newStartTime);
+      localStorage.setItem(`interview_start_time_${interviewId}`, newStartTime.toString());
+    }
+  }, [interviewId]);
 
   // Fetch interview on mount
   useEffect(() => {
@@ -115,6 +127,8 @@ export default function InterviewConductPage() {
 
   // Timer effect
   useEffect(() => {
+    if (startTime === null) return;
+    
     const timer = setInterval(() => {
       setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
     }, 1000);
@@ -229,6 +243,7 @@ export default function InterviewConductPage() {
     try {
       setCompletingInterview(true);
       await interviewsAPI.updateStatus(interviewId, 'completed');
+      localStorage.removeItem(`interview_start_time_${interviewId}`);
       router.push(`/interviews/${interviewId}`);
     } catch (err) {
       console.error('Failed to complete interview');
@@ -239,6 +254,7 @@ export default function InterviewConductPage() {
   const handleAbortInterview = async () => {
     try {
       await interviewsAPI.updateStatus(interviewId, 'aborted');
+      localStorage.removeItem(`interview_start_time_${interviewId}`);
       router.push('/interviews');
     } catch (err) {
       console.error('Failed to abort interview');
