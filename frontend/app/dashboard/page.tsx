@@ -8,6 +8,7 @@ import { templatesAPI, interviewsAPI, objectToArray } from '@/lib/api';
 import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 import RichTextDisplay from '@/lib/components/rich-text-display';
+import Loader from '@/lib/components/loader';
 
 export default function DashboardPage() {
   useLayoutEffect(() => {
@@ -44,6 +45,8 @@ export default function DashboardPage() {
   const recentTemplates = templates?.slice(0, 3) || [];
   const recentInterviews = interviews?.slice(0, 3) || [];
 
+  const isLoading = !templates || !interviews;
+
   const stats = [
     {
       label: 'Total Templates',
@@ -70,6 +73,16 @@ export default function DashboardPage() {
       color: 'from-[#F96E5B] to-[#FFE2AF]',
     },
   ];
+
+  if (isLoading) {
+    return (
+      <ProtectedPageWrapper>
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+          <Loader message="Loading dashboard..." />
+        </div>
+      </ProtectedPageWrapper>
+    );
+  }
 
   if (loading) {
     return (

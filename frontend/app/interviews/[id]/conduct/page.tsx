@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { interviewsAPI } from '@/lib/api';
 import Link from 'next/link';
+import Loader from '@/lib/components/loader';
 
 export default function InterviewConductPage() {
   const { user } = useAuth();
@@ -293,14 +294,10 @@ export default function InterviewConductPage() {
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
-
   if (loading) {
     return (
-      <div className="bg-slate-950 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#79C9C5] border-t-[#3F9AAE] rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-[#79C9C5]">Loading interview...</p>
-        </div>
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen flex items-center justify-center">
+        <Loader message="Loading interview..." />
       </div>
     );
   }

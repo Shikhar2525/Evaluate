@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/hooks';
 import { interviewsAPI, objectToArray } from '@/lib/api';
 import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
+import Loader from '@/lib/components/loader';
 
 export default function InterviewDetailPage() {
   useLayoutEffect(() => {
@@ -66,11 +67,15 @@ export default function InterviewDetailPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-12">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+        <Loader message="Loading interview..." />
+      </div>
+    );
   }
 
   if (!interview) {
-    return <div className="text-center py-12">Interview not found</div>;
+    return <div className="text-center py-12 text-[#79C9C5]">Interview not found</div>;
   }
 
   // Extract questions from sections

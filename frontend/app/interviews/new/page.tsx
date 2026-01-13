@@ -185,37 +185,73 @@ function NewInterviewContent() {
   if (!templateId && templates.length > 0) {
     return (
       <div className="bg-slate-950 min-h-screen">
-        <div className="border-b border-[#3F9AAE]/30 bg-slate-900/50">
-          <div className="max-w-6xl mx-auto px-6 py-4">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent mb-2">Start Interview</h1>
-              <p className="text-[#79C9C5]">Select a template to begin a new interview</p>
-            </div>
+        {/* Page Header */}
+        <div className="border-b border-[#3F9AAE]/30 bg-gradient-to-r from-[#3F9AAE]/5 via-slate-900 to-[#3F9AAE]/5 shadow-sm">
+          <div className="max-w-6xl mx-auto px-6 py-12">
+            <h1 className="text-4xl font-bold text-white mb-3">Select Interview Template</h1>
+            <p className="text-[#79C9C5] text-lg">Choose a template to start conducting a new interview</p>
           </div>
         </div>
-        <main className="max-w-6xl mx-auto px-6 py-8">
+
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.map((t: any) => (
+            {templates.map((t: any) => {
+              const sectionsCount = objectToArray(t.sections)?.length || 0;
+              const questionsCount = objectToArray(t.sections)?.reduce((sum: number, s: any) => sum + (objectToArray(s.questions)?.length || 0), 0) || 0;
+              return (
               <Link
                 key={t.id}
                 href={`/interviews/new?templateId=${t.id}`}
-                className="bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/20 transition-all duration-200 border border-[#3F9AAE]/30 overflow-hidden group animate-slide-in backdrop-blur-sm p-6"
+                className="group bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/30 transition-all duration-300 border border-[#3F9AAE]/25 overflow-hidden animate-slide-in backdrop-blur-sm hover:-translate-y-1"
               >
-                <div className="p-3 rounded-lg bg-[#3F9AAE]/20 text-[#79C9C5] w-fit mb-4">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
+                {/* Card Header with Gradient Background */}
+                <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-transparent p-6 border-b border-[#3F9AAE]/20">
+                  <div className="flex items-start gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] group-hover:from-[#3F9AAE]/40 group-hover:to-[#79C9C5]/30 transition-colors">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white group-hover:text-[#FFE2AF] transition-colors">{t.name}</h3>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors mb-2">{t.name}</h3>
-                <div className="text-[#79C9C5] text-sm line-clamp-2 mb-4">
-                  <RichTextDisplay content={t.description} className="text-sm text-[#79C9C5]" />
-                </div>
-                <div className="flex items-center space-x-4 text-xs text-[#79C9C5]">
-                  <span>📋 {objectToArray(t.sections)?.length || 0} sections</span>
-                  <span>❓ {objectToArray(t.sections)?.reduce((sum: number, s: any) => sum + (objectToArray(s.questions)?.length || 0), 0) || 0} questions</span>
+
+                {/* Card Content */}
+                <div className="p-6">
+                  {/* Description */}
+                  {t.description && (
+                    <div className="text-[#79C9C5] text-sm mb-5 line-clamp-3 opacity-90">
+                      <RichTextDisplay content={t.description} className="text-[#79C9C5]" />
+                    </div>
+                  )}
+
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-3 p-4 bg-[#3F9AAE]/10 rounded-lg border border-[#3F9AAE]/20 mb-5">
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-[#79C9C5]">{sectionsCount}</p>
+                      <p className="text-xs font-semibold text-[#79C9C5]/60 uppercase tracking-wide mt-1">Sections</p>
+                    </div>
+                    <div className="text-center border-l border-r border-[#3F9AAE]/20">
+                      <p className="text-2xl font-bold text-[#79C9C5]">{questionsCount}</p>
+                      <p className="text-xs font-semibold text-[#79C9C5]/60 uppercase tracking-wide mt-1">Questions</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-[#FFE2AF]">~{Math.round(questionsCount * 3)}</p>
+                      <p className="text-xs font-semibold text-[#FFE2AF]/60 uppercase tracking-wide mt-1">Minutes</p>
+                    </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <button className="w-full px-4 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/40 transition-all uppercase tracking-wide text-sm group-hover:scale-105 duration-200">
+                    Select Template
+                  </button>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </main>
       </div>
@@ -244,16 +280,16 @@ function NewInterviewContent() {
     return (
       <div className="min-h-screen bg-slate-950">
         {/* Page Header */}
-        <div className="border-b border-[#3F9AAE]/30 bg-slate-900 shadow-sm">
+        <div className="border-b border-[#3F9AAE]/30 bg-gradient-to-r from-[#3F9AAE]/5 via-slate-900 to-[#3F9AAE]/5 shadow-sm">
           <div className="max-w-2xl mx-auto px-6 py-8">
             <Link
-              href="/templates"
-              className="inline-flex items-center space-x-1 text-[#79C9C5] hover:text-[#79C9C5]/80 font-medium mb-4 group"
+              href="/interviews"
+              className="inline-flex items-center space-x-1 text-[#79C9C5] hover:text-[#79C9C5] font-medium mb-4 group"
             >
               <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              <span>Back to Templates</span>
+              <span>Back to Interviews</span>
             </Link>
             <h1 className="text-3xl font-bold text-white">Start Interview</h1>
           </div>
@@ -261,52 +297,53 @@ function NewInterviewContent() {
 
         {/* Main Content */}
         <main className="max-w-2xl mx-auto px-6 py-12">
-          <div className="bg-slate-900 rounded-xl shadow-lg p-8 border border-[#3F9AAE]/30 animate-slide-in">
-            {/* Template Info Header */}
-            <div className="flex items-start justify-between mb-8">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="p-3 rounded-lg bg-[#3F9AAE]/20 text-[#79C9C5]">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">{template.name}</h2>
-                    {template.description && (
-                      <div className="text-[#79C9C5] text-sm mt-1">
-                        <RichTextDisplay content={template.description} className="text-sm text-[#79C9C5]" />
-                      </div>
-                    )}
+          <div className="bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl shadow-xl border border-[#3F9AAE]/25 overflow-hidden animate-slide-in backdrop-blur-md">
+            {/* Card Header Section with Gradient Background */}
+            <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-transparent p-8 border-b border-[#3F9AAE]/20">
+              <div className="flex items-start gap-6">
+                {/* Icon */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] flex-shrink-0 shadow-lg">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+                
+                {/* Content */}
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold text-white mb-2 leading-tight">{template.name}</h2>
+                  {template.description && (
+                    <div className="text-[#79C9C5] text-sm mb-4 line-clamp-3 opacity-90">
+                      <RichTextDisplay content={template.description} className="text-[#79C9C5]" />
+                    </div>
+                  )}
+                  
+                  {/* Quick Stats */}
+                  <div className="flex flex-wrap gap-3">
+                    <div className="px-3 py-2 rounded-lg bg-[#3F9AAE]/15 border border-[#3F9AAE]/30">
+                      <p className="text-xs font-semibold text-[#79C9C5] uppercase tracking-wider">Sections</p>
+                      <p className="text-lg font-bold text-white">{objectToArray(template.sections)?.length || 0}</p>
+                    </div>
+                    <div className="px-3 py-2 rounded-lg bg-[#3F9AAE]/15 border border-[#3F9AAE]/30">
+                      <p className="text-xs font-semibold text-[#79C9C5] uppercase tracking-wider">Questions</p>
+                      <p className="text-lg font-bold text-white">{totalQuestions}</p>
+                    </div>
+                    <div className="px-3 py-2 rounded-lg bg-[#FFE2AF]/15 border border-[#FFE2AF]/30">
+                      <p className="text-xs font-semibold text-[#FFE2AF] uppercase tracking-wider">Duration</p>
+                      <p className="text-lg font-bold text-white">~{Math.round(totalQuestions * 3)}m</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* Template Details Card */}
-            <div className="bg-gradient-to-r from-[#3F9AAE]/10 to-[#79C9C5]/10 rounded-lg p-6 mb-8">
-              <div className="grid grid-cols-3 gap-6">
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-[#79C9C5] mb-2">{objectToArray(template.sections).length || 0}</p>
-                  <p className="text-sm text-[#79C9C5]/70 font-medium">Sections</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-[#79C9C5] mb-2">{totalQuestions}</p>
-                  <p className="text-sm text-[#79C9C5]/70 font-medium">Questions</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-[#79C9C5] mb-2">~{Math.round(totalQuestions * 3)}</p>
-                  <p className="text-sm text-[#79C9C5]/70 font-medium">Min</p>
-                </div>
-              </div>
-            </div>
-
+            
+            {/* Form Content */}
+            <div className="p-8">
             {/* Form */}
             <form onSubmit={handleStartInterview} className="space-y-6">
               {/* Candidate Name */}
               <div>
-                <label htmlFor="candidateName" className="block text-sm font-semibold text-[#79C9C5] mb-2">
-                  Candidate Name <span className="text-red-400 font-normal">*</span>
+                <label htmlFor="candidateName" className="block text-sm font-bold text-[#79C9C5] mb-3 uppercase tracking-wide">
+                  Candidate Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -315,16 +352,16 @@ function NewInterviewContent() {
                   onChange={(e) => setCandidateName(e.target.value)}
                   placeholder="e.g., John Doe"
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-[#3F9AAE]/30 bg-slate-800/50 text-white placeholder-[#79C9C5]/40 focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent"
+                  className="w-full px-4 py-3 rounded-lg border border-[#3F9AAE]/40 bg-slate-700/50 text-white placeholder-[#79C9C5]/50 focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent transition-all font-medium"
                 />
-                <p className="text-xs text-[#79C9C5]/50 mt-1.5">This name will be used to track the interview results</p>
+                <p className="text-xs text-[#79C9C5]/60 mt-2">This will be used to track and identify the interview in your records</p>
               </div>
 
               {/* Sections Preview - Draggable */}
-              <div>
-                <label className="block text-sm font-semibold text-[#79C9C5] mb-3 flex items-center gap-2">
+              <div className="pt-2">
+                <label className="block text-sm font-bold text-[#79C9C5] mb-4 flex items-center gap-2 uppercase tracking-wide">
                   Interview Sections
-                  <span className="text-xs font-normal text-[#79C9C5]/50 bg-[#3F9AAE]/20 px-2 py-1 rounded">Drag to reorder</span>
+                  <span className="text-xs font-normal text-[#79C9C5]/50 bg-[#3F9AAE]/20 px-2.5 py-1 rounded-md not-italic">Drag to reorder</span>
                 </label>
                 <div className="space-y-2">
                   {objectToArray(sections).map((section: any, index: number) => (
@@ -335,30 +372,27 @@ function NewInterviewContent() {
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, section)}
                       onDragEnd={handleDragEnd}
-                      className={`flex items-center space-x-3 p-3 rounded-lg border transition-all cursor-move group ${
+                      className={`flex items-center space-x-4 p-4 rounded-xl border-2 transition-all cursor-move group ${
                         draggedSection?.id === section.id
-                          ? 'bg-[#3F9AAE]/20 border-[#3F9AAE] opacity-50'
-                          : 'bg-slate-800/50 border-[#3F9AAE]/30 hover:border-[#3F9AAE]/60 hover:bg-slate-800/70'
+                          ? 'bg-[#3F9AAE]/30 border-[#3F9AAE]/60 opacity-60 shadow-md'
+                          : 'bg-slate-700/40 border-[#3F9AAE]/20 hover:border-[#3F9AAE]/50 hover:bg-slate-700/60 hover:shadow-md'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-md bg-[#3F9AAE]/20 text-[#79C9C5] group-hover:bg-[#3F9AAE]/40 transition-colors">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex-shrink-0">
+                        <div className="p-2 rounded-lg bg-[#3F9AAE]/25 text-[#79C9C5] group-hover:bg-[#3F9AAE]/40 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <div className="hidden group-hover:flex items-center gap-1 text-[#79C9C5]/50 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 3h2v18H9V3zm4 0h2v18h-2V3z" />
-                          </svg>
-                        </div>
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-white flex items-center gap-2">
-                          {section.title}
-                          <span className="text-xs font-normal text-[#79C9C5]/40 bg-[#3F9AAE]/10 px-2 py-0.5 rounded">#{index + 1}</span>
-                        </p>
-                        <p className="text-xs text-[#79C9C5]/50">{objectToArray(section.questions).length || 0} questions</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-white text-base">{section.title}</p>
+                        <p className="text-sm text-[#79C9C5]/70 mt-0.5">{objectToArray(section.questions).length || 0} questions</p>
+                      </div>
+                      <div className="flex-shrink-0 hidden group-hover:flex items-center gap-1 text-[#79C9C5]/50">
+                        <svg className="w-4 h-4 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 3h2v18H9V3zm4 0h2v18h-2V3z" />
+                        </svg>
                       </div>
                     </div>
                   ))}
@@ -366,16 +400,16 @@ function NewInterviewContent() {
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-[#3F9AAE]/30 flex gap-3">
+              <div className="pt-6">
                 <button
                   type="submit"
                   disabled={creating}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="w-full px-6 py-4 bg-gradient-to-r from-[#3F9AAE] via-[#3F9AAE] to-[#79C9C5] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/40 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-2 uppercase tracking-wide text-sm"
                 >
                   {creating ? (
                     <>
-                      <span className="inline-block w-4 h-4 border-2 border-white border-t-[#3F9AAE] rounded-full animate-spin"></span>
-                      <span>Starting...</span>
+                      <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      <span>Starting Interview...</span>
                     </>
                   ) : (
                     <>
@@ -386,26 +420,8 @@ function NewInterviewContent() {
                     </>
                   )}
                 </button>
-                <Link
-                  href="/templates"
-                  className="flex-1 px-6 py-3 border border-[#3F9AAE]/30 text-[#79C9C5] font-semibold rounded-lg hover:bg-slate-800/50 transition-colors text-center"
-                >
-                  Cancel
-                </Link>
               </div>
             </form>
-
-            {/* Info Banner */}
-            <div className="mt-8 p-4 bg-[#FFE2AF]/10 border border-[#FFE2AF]/30 rounded-lg">
-              <div className="flex space-x-3">
-                <svg className="w-5 h-5 text-[#FFE2AF] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div className="text-sm text-[#FFE2AF]/90">
-                  <p className="font-semibold">Tip:</p>
-                  <p>You can save your progress and come back to this interview later. It will be marked as "In Progress".</p>
-                </div>
-              </div>
             </div>
           </div>
         </main>
