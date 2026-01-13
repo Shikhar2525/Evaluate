@@ -21,13 +21,13 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
     <>
       <style>{`
         .rich-text-display {
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display p {
           margin-bottom: 0;
           margin-top: 0;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display ol,
@@ -35,7 +35,7 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
           list-style-type: disc !important;
           margin: 0 !important;
           padding-left: 1.5rem !important;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display ol {
@@ -44,23 +44,23 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
         
         .rich-text-display li {
           margin-bottom: 0.25rem;
-          color: inherit;
+          color: currentColor !important;
           display: list-item !important;
         }
         
         .rich-text-display em {
           font-style: italic;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display u {
           text-decoration: underline;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display s {
           text-decoration: line-through;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display h1,
@@ -71,7 +71,7 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
         .rich-text-display h6 {
           margin: 1rem 0 0.5rem 0;
           font-weight: 700;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display h1 {
@@ -108,19 +108,19 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
           list-style-type: disc !important;
           margin: 0.75rem 0 0.75rem 2rem !important;
           padding-left: 1.5rem !important;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display ol {
           list-style-type: decimal !important;
           margin: 0.75rem 0 0.75rem 2rem !important;
           padding-left: 1.5rem !important;
-          color: inherit;
+          color: currentColor !important;
         }
         
         .rich-text-display li {
           margin-bottom: 0.5rem;
-          color: inherit;
+          color: currentColor !important;
           display: list-item !important;
         }
         
@@ -136,7 +136,7 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
           border-left: 4px solid #3F9AAE;
           padding-left: 1rem;
           margin: 0.75rem 0;
-          color: inherit;
+          color: currentColor !important;
           font-style: italic;
         }
         

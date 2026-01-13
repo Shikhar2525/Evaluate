@@ -158,50 +158,55 @@ export default function TemplatesPage() {
         {templates && templates.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {templates.map((template: any) => (
-              <div key={template.id} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/30 transition-all duration-300 border border-[#3F9AAE]/40 overflow-hidden group animate-slide-in backdrop-blur-sm">
-                <div className="p-6">
-                  {/* Template Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white group-hover:text-[#FFE2AF] transition-colors mb-1">
-                        {template.name}
-                      </h3>
-                    </div>
-                    <div className="ml-3 p-2.5 rounded-lg bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] group-hover:from-[#3F9AAE]/40 group-hover:to-[#79C9C5]/30 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  {template.description && (
-                    <RichTextDisplay content={template.description} className="text-sm line-clamp-3 mb-5" />
-                  )}
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3 mb-6 py-4 px-3 bg-gradient-to-r from-[#3F9AAE]/5 to-[#79C9C5]/5 rounded-lg border border-[#3F9AAE]/10">
-                    <div className="flex flex-col items-start">
-                      <span className="text-2xl font-bold text-[#79C9C5]">{objectToArray(template.sections)?.length || 0}</span>
-                      <span className="text-xs text-[#79C9C5]/60 uppercase tracking-wide">Sections</span>
-                    </div>
-                    <div className="flex flex-col items-start">
-                      <span className="text-2xl font-bold text-[#79C9C5]">{objectToArray(template.sections)?.reduce((sum: number, section: any) => sum + (objectToArray(section.questions)?.length || 0), 0) || 0}</span>
-                      <span className="text-xs text-[#79C9C5]/60 uppercase tracking-wide">Questions</span>
+              <div key={template.id} className="group h-full">
+                <div className="h-full bg-gradient-to-b from-slate-700/40 via-slate-800/50 to-slate-900/60 rounded-2xl border border-[#3F9AAE]/25 hover:border-[#79C9C5]/40 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#3F9AAE]/20 backdrop-blur-md animate-slide-in flex flex-col">
+                  {/* Header Section with Icon */}
+                  <div className="p-5 border-b border-[#3F9AAE]/15 bg-gradient-to-r from-[#3F9AAE]/10 to-transparent">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors leading-tight mb-2">
+                          {template.name}
+                        </h3>
+                        <div className="flex gap-2">
+                          <span className="inline-block px-2.5 py-1 text-xs font-semibold text-[#79C9C5] bg-[#3F9AAE]/20 rounded-full border border-[#3F9AAE]/30">
+                            {objectToArray(template.sections)?.length || 0} Sections
+                          </span>
+                          <span className="inline-block px-2.5 py-1 text-xs font-semibold text-[#FFE2AF] bg-[#F96E5B]/20 rounded-full border border-[#F96E5B]/30">
+                            {objectToArray(template.sections)?.reduce((sum: number, section: any) => sum + (objectToArray(section.questions)?.length || 0), 0) || 0} Q's
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-[#3F9AAE]/20 to-[#79C9C5]/10 text-[#79C9C5] group-hover:from-[#3F9AAE]/30 group-hover:to-[#79C9C5]/20 transition-all flex-shrink-0">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2.5">
+                  {/* Description Section */}
+                  <div className="flex-1 p-5">
+                    {template.description ? (
+                      <div className="text-[#79C9C5]">
+                        <p className="text-xs font-semibold text-[#FFE2AF]/70 uppercase tracking-wide mb-2">Description</p>
+                        <RichTextDisplay content={template.description} className="text-sm line-clamp-3 text-[#79C9C5]" />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 italic">No description provided</p>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="p-5 border-t border-[#3F9AAE]/15 bg-gradient-to-r from-transparent to-[#3F9AAE]/5 flex gap-3">
                     <Link
                       href={`/templates/${template.id}`}
-                      className="flex-1 px-4 py-2.5 border border-[#3F9AAE]/50 text-[#79C9C5] font-medium rounded-lg hover:bg-[#3F9AAE]/15 hover:border-[#3F9AAE]/80 transition-all text-center text-sm"
+                      className="flex-1 px-4 py-2.5 text-center text-sm font-semibold text-[#79C9C5] border border-[#3F9AAE]/40 rounded-lg hover:border-[#79C9C5]/60 hover:bg-[#3F9AAE]/15 transition-all duration-200"
                     >
                       Edit
                     </Link>
                     <Link
                       href={`/interviews/new?templateId=${template.id}`}
-                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all text-center text-sm hover:scale-105"
+                      className="flex-1 px-4 py-2.5 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/40 transition-all duration-200 hover:-translate-y-0.5"
                     >
                       Start
                     </Link>

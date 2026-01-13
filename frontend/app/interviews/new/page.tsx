@@ -208,7 +208,7 @@ function NewInterviewContent() {
                 </div>
                 <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors mb-2">{t.name}</h3>
                 <div className="text-[#79C9C5] text-sm line-clamp-2 mb-4">
-                  <RichTextDisplay content={t.description} className="text-sm" />
+                  <RichTextDisplay content={t.description} className="text-sm text-[#79C9C5]" />
                 </div>
                 <div className="flex items-center space-x-4 text-xs text-[#79C9C5]">
                   <span>📋 {objectToArray(t.sections)?.length || 0} sections</span>
@@ -275,7 +275,7 @@ function NewInterviewContent() {
                     <h2 className="text-2xl font-bold text-white">{template.name}</h2>
                     {template.description && (
                       <div className="text-[#79C9C5] text-sm mt-1">
-                        <RichTextDisplay content={template.description} className="text-sm" />
+                        <RichTextDisplay content={template.description} className="text-sm text-[#79C9C5]" />
                       </div>
                     )}
                   </div>

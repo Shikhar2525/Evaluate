@@ -188,7 +188,7 @@ export default function DashboardPage() {
                     <h3 className="font-bold text-white hover:text-[#FFE2AF] transition-colors mb-1 truncate">{template.name}</h3>
                     {template.description && (
                       <div className="text-[#79C9C5] text-sm line-clamp-2 mb-3">
-                        <RichTextDisplay content={template.description} className="text-sm" />
+                        <RichTextDisplay content={template.description} className="text-sm text-[#79C9C5]" />
                       </div>
                     )}
                     <div className="flex items-center space-x-4 text-xs text-[#79C9C5]">
