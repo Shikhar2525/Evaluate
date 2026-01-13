@@ -1,10 +1,22 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useMemo } from 'react';
+import { useMemo, Suspense } from 'react';
 import 'react-quill/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// Loading component for React Quill
+function QuillLoader() {
+  return (
+    <div className="w-full h-64 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center">
+      <div className="text-slate-400">Loading editor...</div>
+    </div>
+  );
+}
+
+const ReactQuill = dynamic(() => import('react-quill'), {
+  ssr: false,
+  loading: QuillLoader,
+});
 
 interface RichTextEditorProps {
   value: string;

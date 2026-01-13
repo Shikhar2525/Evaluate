@@ -29,7 +29,7 @@ export const useAuth = () => {
               email: currentUser.email || '',
               firstName: currentUser.firstName || '',
               lastName: currentUser.lastName || '',
-              photoURL: currentUser.photoURL,
+              photoURL: currentUser.photoURL || undefined,
             });
           }
         } else {
@@ -55,7 +55,6 @@ export const useAuth = () => {
         email: user.data.user.email || '',
         firstName: user.data.user.firstName || '',
         lastName: user.data.user.lastName || '',
-        photoURL: user.data.user.photoURL,
       });
       setLoading(false);
       return user.data;
@@ -71,7 +70,6 @@ export const useAuth = () => {
         email: user.data.user.email || '',
         firstName: user.data.user.firstName || '',
         lastName: user.data.user.lastName || '',
-        photoURL: user.data.user.photoURL,
       });
       setLoading(false);
       return user.data;
@@ -86,7 +84,6 @@ export const useAuth = () => {
       email: user.email || '',
       firstName: user.firstName || '',
       lastName: user.lastName || '',
-      photoURL: user.photoURL,
     });
     setLoading(false);
     return user;

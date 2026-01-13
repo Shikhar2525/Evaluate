@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import type { Metadata } from 'next';
 import { useAuth } from '@/lib/hooks';
 import { useAsyncData } from '@/lib/hooks';
 import { templatesAPI, interviewsAPI, objectToArray } from '@/lib/api';
