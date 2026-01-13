@@ -475,10 +475,8 @@ export default function InterviewConductPage() {
                         ? 'rgba(16, 185, 129, 0.2)'
                         : status === 'skipped'
                         ? 'rgba(239, 68, 68, 0.1)'
-                        : status === 'visited'
-                        ? 'rgba(239, 68, 68, 0.1)'
                         : `rgba(${sectionColor.rgb}, 0.1)`,
-                      color: isActive ? 'white' : status === 'saved' ? '#10b981' : status === 'skipped' ? '#ef4444' : status === 'visited' ? '#ef4444' : sectionColor.hex,
+                      color: isActive ? 'white' : status === 'saved' ? '#10b981' : status === 'skipped' ? '#ef4444' : sectionColor.hex,
                     }}
                   >
                     {status === 'saved' ? '✓' : status === 'skipped' ? '⊘' : index + 1}
