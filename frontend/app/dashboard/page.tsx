@@ -107,7 +107,7 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent mb-2">
                 Dashboard
               </h1>
-              <p className="text-[#79C9C5]">Welcome back, {user?.email?.split('@')[0]}! Here's your interview management overview</p>
+              <p className="text-[#79C9C5]">Welcome back, {user?.firstName ? `${user.firstName}${user.lastName ? ` ${user.lastName}` : ''}` : user?.email?.split('@')[0]}! Here's your interview management overview</p>
             </div>
           </div>
         </div>
