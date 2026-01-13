@@ -133,12 +133,11 @@ export default function InterviewConductPage() {
   // Get question status
   const getQuestionStatus = (question: any) => {
     if (question.skipped) return 'skipped';
+    // Only mark as saved if there's a rating (rating is mandatory)
     if (question.feedback && question.feedback.rating && question.feedback.rating >= 1 && question.feedback.rating <= 5) {
       return 'saved';
     }
-    if (visitedQuestions.has(question.id)) {
-      return 'visited';
-    }
+    // Don't show visited status - either it's saved (with rating) or unanswered
     return 'unanswered';
   };
 
@@ -203,14 +202,16 @@ export default function InterviewConductPage() {
 
   // Handle rating click with auto-save
   const handleRatingClick = async (rating: number) => {
-    setFeedback({ ...feedback, rating });
+    // Allow revoking rating by clicking the same rating again
+    const newRating = feedback.rating === rating ? 0 : rating;
+    setFeedback({ ...feedback, rating: newRating });
     if (!interview || !allQuestions[currentQuestionIndex]) return;
 
     try {
       const currentInterviewQuestion = allQuestions[currentQuestionIndex];
       const feedbackToSave: any = {
         notes: feedback.notes?.trim() || '',
-        rating: rating,
+        rating: newRating,
       };
 
       await interviewsAPI.saveFeedback(
@@ -220,20 +221,64 @@ export default function InterviewConductPage() {
         feedbackToSave
       );
 
-      // Update local state
-      const updatedQuestions = allQuestions.map((q: any, idx: number) =>
-        idx === currentQuestionIndex ? { ...q, feedback: feedbackToSave } : q
-      );
+      // Update the interview state with the feedback so questions bar reflects the saved status
+      const updatedInterview = { ...interview };
+      if (updatedInterview.sections && updatedInterview.sections[currentInterviewQuestion.sectionId]) {
+        const section = updatedInterview.sections[currentInterviewQuestion.sectionId];
+        if (section.questions && section.questions[currentInterviewQuestion.id]) {
+          section.questions[currentInterviewQuestion.id] = {
+            ...section.questions[currentInterviewQuestion.id],
+            feedback: feedbackToSave
+          };
+        }
+      }
+      
+      setInterview(updatedInterview);
 
-      setInterview({
-        ...interview,
-        questions: updatedQuestions,
-      });
-
-      setShowSaveSuccess(true);
-      setTimeout(() => setShowSaveSuccess(false), 2000);
+      if (newRating > 0) {
+        setShowSaveSuccess(true);
+        setTimeout(() => setShowSaveSuccess(false), 2000);
+      }
     } catch (err) {
       console.error('Failed to save feedback:', err);
+    }
+  };
+
+  // Handle notes change with auto-save debounce
+  const handleNotesChange = async (notes: string) => {
+    setFeedback({ ...feedback, notes });
+    
+    if (!interview || !allQuestions[currentQuestionIndex]) return;
+
+    try {
+      const currentInterviewQuestion = allQuestions[currentQuestionIndex];
+      const feedbackToSave: any = {
+        notes: notes?.trim() || '',
+        rating: feedback.rating,
+      };
+
+      await interviewsAPI.saveFeedback(
+        interviewId,
+        currentInterviewQuestion.sectionId,
+        currentInterviewQuestion.id,
+        feedbackToSave
+      );
+
+      // Update the interview state with the feedback
+      const updatedInterview = { ...interview };
+      if (updatedInterview.sections && updatedInterview.sections[currentInterviewQuestion.sectionId]) {
+        const section = updatedInterview.sections[currentInterviewQuestion.sectionId];
+        if (section.questions && section.questions[currentInterviewQuestion.id]) {
+          section.questions[currentInterviewQuestion.id] = {
+            ...section.questions[currentInterviewQuestion.id],
+            feedback: feedbackToSave
+          };
+        }
+      }
+      
+      setInterview(updatedInterview);
+    } catch (err) {
+      console.error('Failed to save notes:', err);
     }
   };
 
@@ -346,9 +391,12 @@ export default function InterviewConductPage() {
               >
                 {completingInterview ? 'Completing...' : 'Complete Interview'}
               </button>
-              <Link href="/interviews" className="block px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] font-semibold rounded-xl hover:bg-[#3F9AAE]/10 transition-colors">
-                Back to Interviews
-              </Link>
+              <button
+                onClick={() => setShowSummary(false)}
+                className="w-full px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] font-semibold rounded-xl hover:bg-[#3F9AAE]/10 transition-colors"
+              >
+                Back to Questions
+              </button>
             </div>
           </div>
         </div>
@@ -505,7 +553,7 @@ export default function InterviewConductPage() {
                     </label>
                     <textarea
                       value={feedback.notes}
-                      onChange={(e) => setFeedback({ ...feedback, notes: e.target.value })}
+                      onChange={(e) => handleNotesChange(e.target.value)}
                       placeholder="Record your observations and feedback..."
                       disabled={loadingFeedback}
                       className="w-full rounded-xl border-2 border-[#3F9AAE]/30 focus:border-[#3F9AAE] shadow-lg focus:outline-none focus:ring-2 focus:ring-[#3F9AAE]/50 bg-slate-700/50 text-white placeholder-slate-400 px-6 py-4 text-lg transition-all disabled:opacity-50"
@@ -515,24 +563,51 @@ export default function InterviewConductPage() {
 
                   {/* Rating */}
                   <div>
-                    <label className="block text-sm font-bold text-[#FFE2AF] mb-4 tracking-wide">
-                      ⭐ PERFORMANCE RATING
+                    <label className="block text-sm font-bold text-[#FFE2AF] mb-6 tracking-wide">
+                      ⭐ PERFORMANCE RATING (Click to select or deselect)
                     </label>
-                    <div className="flex gap-3 justify-center">
-                      {[1, 2, 3, 4, 5].map((rating) => (
-                        <button
-                          key={rating}
-                          onClick={() => handleRatingClick(rating)}
-                          disabled={loadingFeedback}
-                          className={`w-16 h-16 rounded-xl font-black text-xl transition-all transform hover:scale-110 ${
-                            feedback.rating === rating
-                              ? 'bg-gradient-to-br from-[#FFE2AF] to-[#F96E5B] text-white shadow-2xl shadow-[#FFE2AF]/50 scale-110 border-2 border-[#FFE2AF]'
-                              : 'bg-slate-700/50 text-[#79C9C5] border-2 border-[#3F9AAE]/30 hover:border-[#3F9AAE]/60'
-                          } disabled:opacity-50`}
-                        >
-                          {rating}
-                        </button>
-                      ))}
+                    <div className="flex gap-4 justify-center">
+                      {[1, 2, 3, 4, 5].map((rating) => {
+                        const isSelected = feedback.rating === rating;
+                        const ratingColor = 
+                          rating === 1 ? '#EF4444' :
+                          rating === 2 ? '#F97316' :
+                          rating === 3 ? '#FFE2AF' :
+                          rating === 4 ? '#84CC16' :
+                          '#10B981';
+                        
+                        return (
+                          <button
+                            key={rating}
+                            onClick={() => handleRatingClick(rating)}
+                            disabled={loadingFeedback}
+                            className={`relative group flex flex-col items-center gap-2 transition-all duration-300 transform ${isSelected ? 'scale-110' : 'hover:scale-105'}`}
+                          >
+                            <div className={`w-16 h-16 rounded-2xl font-black text-2xl transition-all duration-300 flex items-center justify-center border-3 ${
+                              isSelected
+                                ? `bg-gradient-to-br from-white to-${ratingColor}/30 border-white text-white shadow-2xl`
+                                : `bg-slate-700/50 text-slate-400 border-slate-600 hover:border-slate-500 hover:text-${ratingColor}`
+                            } disabled:opacity-50`}
+                            style={isSelected ? {
+                              background: `linear-gradient(135deg, ${ratingColor}30, ${ratingColor}10)`,
+                              borderColor: ratingColor,
+                              color: ratingColor,
+                              boxShadow: `0 0 30px ${ratingColor}40`
+                            } : {
+                              borderColor: '#4B5563'
+                            }}>
+                              {rating}
+                            </div>
+                            <span className={`text-xs font-bold tracking-wide transition-colors ${isSelected ? 'text-white' : 'text-slate-400'}`}>
+                              {rating === 1 && 'Poor'}
+                              {rating === 2 && 'Fair'}
+                              {rating === 3 && 'Good'}
+                              {rating === 4 && 'Very Good'}
+                              {rating === 5 && 'Excellent'}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -557,13 +632,19 @@ export default function InterviewConductPage() {
 
                 <button
                   onClick={() => {
+                    if (!feedback.rating) {
+                      alert('Please provide a rating before moving to the next question');
+                      return;
+                    }
                     if (currentQuestionIndex === totalQuestions - 1) {
                       setShowSummary(true);
                     } else {
                       setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1));
                     }
                   }}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 font-bold transition-all"
+                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 font-bold transition-all disabled:opacity-50"
+                  disabled={!feedback.rating}
+                  title={!feedback.rating ? "Please provide a rating before continuing" : ""}
                 >
                   {currentQuestionIndex === totalQuestions - 1 ? 'Finish' : 'Next'}
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
