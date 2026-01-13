@@ -45,35 +45,50 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-[#3F9AAE]/30 bg-slate-900/50 backdrop-blur-xl shadow-lg">
+    <nav className="sticky top-0 z-50 border-b border-white/5 bg-gradient-to-b from-white/8 via-white/2 to-transparent backdrop-blur-2xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] flex items-center justify-center text-white group-hover:shadow-lg group-hover:shadow-[#3F9AAE]/50 transition-shadow">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+          <Link href="/dashboard" className="flex items-center space-x-3 group">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-lg opacity-0 group-hover:opacity-75 transition-opacity duration-300 blur-sm"></div>
+              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:shadow-blue-500/50 transition-all">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent">
+            <span className="text-lg font-black bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent group-hover:brightness-110 transition-all">
               Evaluate
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                className={`relative px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 group ${
                   isActive(link.href)
-                    ? 'text-[#FFE2AF] border-b-2 border-[#3F9AAE] pb-4'
-                    : 'text-[#79C9C5] hover:text-[#FFE2AF]'
+                    ? 'text-white'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <span>{link.icon}</span>
-                <span>{link.label}</span>
+                {/* Active indicator background */}
+                {isActive(link.href) && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-blue-400/20 to-purple-400/20 rounded-lg -z-10"></div>
+                )}
+                
+                <span className="flex items-center gap-2">
+                  <span className="text-base">{link.icon}</span>
+                  <span>{link.label}</span>
+                </span>
+
+                {/* Hover underline effect */}
+                {!isActive(link.href) && (
+                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                )}
               </Link>
             ))}
           </div>
@@ -83,38 +98,46 @@ export default function Navbar() {
             <div className="relative" ref={profileMenuRef}>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center space-x-2 p-2 hover:bg-[#3F9AAE]/20 rounded-lg transition-all"
+                className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-300 group ${
+                  showProfileMenu 
+                    ? 'bg-white/10 border border-white/20' 
+                    : 'hover:bg-white/5 border border-transparent'
+                }`}
               >
                 {user?.photoURL ? (
                   <img 
                     src={user.photoURL} 
                     alt={`${user?.firstName} ${user?.lastName}`}
                     referrerPolicy="no-referrer"
-                    className="w-10 h-10 rounded-full object-cover border border-[#3F9AAE]/50"
+                    className="w-9 h-9 rounded-lg object-cover border border-white/20 shadow-lg"
                   />
                 ) : (
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] text-white font-semibold text-sm">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-500/30">
                     {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                   </div>
                 )}
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-white">{user?.firstName} {user?.lastName}</p>
+                <div className="hidden sm:flex flex-col items-start">
+                  <p className="text-sm font-semibold text-white">{user?.firstName}</p>
+                  <p className="text-xs text-slate-400">{user?.lastName}</p>
                 </div>
+                <svg className={`w-4 h-4 text-slate-400 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-3 w-72 bg-slate-900/95 rounded-2xl shadow-2xl border border-slate-700/50 py-0 z-20 backdrop-blur-xl overflow-hidden">
+                <div className="absolute right-0 mt-3 w-80 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950/95 rounded-2xl shadow-2xl border border-white/15 py-0 z-20 backdrop-blur-xl overflow-hidden">
                   {/* Profile Header */}
-                  <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 px-6 py-6 flex items-center gap-4 border-b border-slate-700/50">
+                  <div className="bg-gradient-to-r from-cyan-500/15 via-blue-500/15 to-purple-500/15 px-6 py-6 flex items-center gap-4 border-b border-white/10">
                     {user?.photoURL ? (
                       <img 
                         src={user.photoURL} 
                         alt={`${user?.firstName} ${user?.lastName}`}
                         referrerPolicy="no-referrer"
-                        className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/50 shadow-lg"
+                        className="w-14 h-14 rounded-xl object-cover border-2 border-cyan-400/30 shadow-lg"
                       />
                     ) : (
-                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg">
+                      <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-600 text-white font-bold text-lg shadow-lg shadow-blue-500/30">
                         {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                       </div>
                     )}
@@ -131,10 +154,10 @@ export default function Navbar() {
                         handleLogout();
                         setShowProfileMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 group"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 hover:border-red-400/30 rounded-xl transition-all duration-200 group"
                     >
                       <svg className="w-5 h-5 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                       </svg>
                       <span>Sign out</span>
                     </button>
@@ -147,7 +170,7 @@ export default function Navbar() {
             <div className="md:hidden">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-                className="p-2 hover:bg-[#3F9AAE]/20 rounded-lg transition-colors text-[#79C9C5]"
+                className={`p-2 rounded-lg transition-all ${showMenu ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -159,19 +182,22 @@ export default function Navbar() {
 
         {/* Mobile Navigation */}
         {showMenu && (
-          <div className="md:hidden pb-4 border-t border-[#3F9AAE]/30 space-y-2">
+          <div className="md:hidden pb-4 border-t border-white/5 space-y-2">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setShowMenu(false)}
-                className={`block px-4 py-2 rounded-lg transition-colors ${
+                className={`block px-4 py-3 rounded-lg font-semibold transition-all ${
                   isActive(link.href)
-                    ? 'bg-[#3F9AAE]/20 text-[#FFE2AF] font-medium'
-                    : 'text-[#79C9C5] hover:bg-[#3F9AAE]/10'
+                    ? 'bg-gradient-to-r from-cyan-400/20 via-blue-400/20 to-purple-400/20 text-white border border-white/10'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
               >
-                {link.icon} {link.label}
+                <span className="flex items-center gap-2">
+                  <span>{link.icon}</span>
+                  <span>{link.label}</span>
+                </span>
               </Link>
             ))}
           </div>

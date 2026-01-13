@@ -105,72 +105,108 @@ export default function InterviewsPage() {
 
   return (
     <ProtectedPageWrapper>
-      <div className="bg-slate-950 min-h-screen">
-      {/* Page Header */}
-      <div className="border-b border-[#3F9AAE]/30 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent mb-2">Interview History</h1>
-              <p className="text-[#79C9C5]">Track and review all your conducted interviews</p>
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen overflow-hidden">
+        {/* Premium animated background */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-cyan-500/25 to-blue-500/15 rounded-full mix-blend-screen filter blur-3xl opacity-40 animate-blob"></div>
+          <div className="absolute top-1/3 -left-40 w-96 h-96 bg-gradient-to-br from-blue-500/25 to-purple-500/15 rounded-full mix-blend-screen filter blur-3xl opacity-40 animate-blob" style={{animationDelay: '2s'}}></div>
+        </div>
+
+        {/* Page Header - Premium Section */}
+        <div className="relative z-10 border-b border-white/5 bg-gradient-to-b from-white/8 via-white/2 to-transparent backdrop-blur-2xl">
+          <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                    <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-600 flex items-center justify-center text-white shadow-2xl shadow-blue-500/40 group-hover:shadow-blue-500/60 transition-all">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Management</span>
+                    <span className="block text-sm font-semibold text-white">Interview History</span>
+                  </div>
+                </div>
+                <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+                  Your <br/>
+                  <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-purple-500 bg-clip-text text-transparent">
+                    Interviews
+                  </span>
+                </h1>
+                <p className="text-slate-400 text-lg font-light">Track and review all your conducted interviews</p>
+              </div>
+              
+              <Link
+                href="/interviews/new"
+                className="group relative w-fit"
+              >
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400/50 via-blue-400/50 to-purple-400/50 rounded-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                <div className="relative inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-bold rounded-xl shadow-2xl shadow-blue-500/40 group-hover:shadow-blue-500/60 transition-all">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>New Interview</span>
+                </div>
+              </Link>
             </div>
-            <Link
-              href="/interviews/new"
-              className="inline-flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>New Interview</span>
-            </Link>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Filters */}
-        {Array.isArray(interviews) && interviews.length > 0 && (
-          <div className="flex items-center space-x-3 mb-8 overflow-x-auto pb-2">
-            {['all', 'in_progress', 'completed'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-4 py-2 rounded-full font-medium transition-all whitespace-nowrap ${
-                  filterStatus === status
-                    ? 'bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white shadow-lg shadow-[#3F9AAE]/50'
-                    : 'bg-slate-800 border border-[#3F9AAE]/30 text-[#79C9C5] hover:border-[#3F9AAE]'
-                }`}
-              >
-                {status === 'all'
-                  ? 'All'
-                  : status === 'in_progress'
-                    ? 'In Progress'
-                    : 'Completed'}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Main Content */}
+        <main className="relative z-10 max-w-7xl mx-auto px-6 py-16 md:py-20">
+          {/* Filters - Premium */}
+          {Array.isArray(interviews) && interviews.length > 0 && (
+            <div className="mb-12 overflow-x-auto pb-3">
+              <div className="flex items-center gap-3 min-w-max">
+                {['all', 'in_progress', 'completed'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setFilterStatus(status)}
+                    className={`px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
+                      filterStatus === status
+                        ? 'bg-gradient-to-r from-cyan-400/30 via-blue-400/30 to-purple-400/30 text-white border border-white/20 shadow-lg shadow-blue-500/20'
+                        : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    {status === 'all'
+                      ? 'All Interviews'
+                      : status === 'in_progress'
+                        ? 'In Progress'
+                        : 'Completed'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {/* Interviews Grid */}
-        {filteredInterviews.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-            {filteredInterviews.map((interview: any) => (
-              <div
-                key={interview.id}
-                className="bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/20 transition-all duration-200 border border-[#3F9AAE]/30 overflow-hidden group animate-slide-in backdrop-blur-sm"
-              >
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-1.5 border ${
+          {/* Interviews Grid */}
+          {filteredInterviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+              {filteredInterviews.map((interview: any) => (
+                <div
+                  key={interview.id}
+                  className="group relative"
+                >
+                  {/* Animated gradient border */}
+                  <div className="absolute -inset-0.5 bg-gradient-to-br from-cyan-400/30 via-transparent to-purple-400/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
+                  
+                  <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-white/8 to-white/3 border border-white/15 backdrop-blur-xl hover:border-white/25 transition-all group-hover:from-white/12 group-hover:to-white/6 shadow-lg flex flex-col h-full">
+                    {/* Shine effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-full group-hover:translate-x-0 duration-500"></div>
+
+                    <div className="relative z-10 flex flex-col h-full">
+                      {/* Status Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-2 ${
                           interview.status === 'completed'
-                            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
+                            ? 'bg-gradient-to-r from-green-500/20 to-green-400/10 text-green-300'
                             : interview.status === 'aborted'
-                            ? 'bg-red-500/20 border-red-500/50 text-red-300'
-                            : 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                            ? 'bg-gradient-to-r from-red-500/20 to-red-400/10 text-red-300'
+                            : 'bg-gradient-to-r from-blue-500/20 to-blue-400/10 text-blue-300'
                         }`}>
                           {getStatusIcon(interview.status)}
                           <span>
@@ -182,192 +218,202 @@ export default function InterviewsPage() {
                           </span>
                         </div>
                       </div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors">
+
+                      {/* Template Name */}
+                      <h3 className="text-lg font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors line-clamp-2">
                         {interview.template?.name || interview.templateName || 'Unnamed Template'}
                       </h3>
+
+                      {/* Candidate Info */}
+                      <div className="mb-4 pb-4 border-b border-white/10">
+                        <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Candidate</p>
+                        <p className="text-white font-semibold">{interview.candidateName}</p>
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex items-center gap-2 text-sm text-slate-400 mb-4">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>{new Date(interview.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+
+                      {/* Progress or Stats */}
+                      {interview.status === 'in_progress' && interview.interviewQuestions && (
+                        <div className="mb-6">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-xs font-semibold text-slate-400">Progress</p>
+                            <p className="text-xs font-semibold text-cyan-300">
+                              {interview.interviewQuestions.filter((q: any) => q.feedback).length} / {interview.interviewQuestions.length}
+                            </p>
+                          </div>
+                          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+                            <div
+                              className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 h-full transition-all duration-300"
+                              style={{
+                                width: `${
+                                  (interview.interviewQuestions.filter((q: any) => q.feedback).length /
+                                    interview.interviewQuestions.length) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+
+                      {interview.status === 'completed' && interview.interviewQuestions && (
+                        <div className="grid grid-cols-2 gap-3 mb-6">
+                          <div className="bg-white/5 rounded-lg p-3 text-center border border-white/10">
+                            <p className="text-2xl font-black text-white">{interview.interviewQuestions.length}</p>
+                            <p className="text-xs text-slate-400 font-medium mt-1">Questions</p>
+                          </div>
+                          <div className="bg-green-500/10 rounded-lg p-3 text-center border border-green-500/20">
+                            <p className="text-2xl font-black text-green-300">
+                              {interview.interviewQuestions.filter((q: any) => q.feedback).length}
+                            </p>
+                            <p className="text-xs text-green-300 font-medium mt-1">Rated</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="mt-auto space-y-3">
+                        {interview.status === 'in_progress' ? (
+                          <>
+                            <Link
+                              href={`/interviews/${interview.id}/conduct`}
+                              className="w-full px-4 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-blue-500/40 transition-all text-center text-sm"
+                            >
+                              Continue Interview
+                            </Link>
+                            <div className="grid grid-cols-2 gap-2">
+                              <Link
+                                href={`/interviews/${interview.id}`}
+                                className="px-3 py-2 border border-white/20 text-slate-300 font-medium rounded-lg hover:bg-white/5 hover:border-white/30 transition-all text-center text-sm"
+                                title="View Details"
+                              >
+                                <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  setDeleteInterviewId(interview.id);
+                                  setShowDeleteModal(true);
+                                }}
+                                className="px-3 py-2 border border-red-500/30 text-red-400 font-medium rounded-lg hover:bg-red-500/10 hover:border-red-500/50 transition-all text-center text-sm"
+                                title="Delete Interview"
+                              >
+                                <svg className="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Link
+                              href={`/interviews/${interview.id}`}
+                              className="w-full px-4 py-3 bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-blue-500/40 transition-all text-center text-sm"
+                            >
+                              View Results
+                            </Link>
+                            <button
+                              onClick={() => {
+                                setDeleteInterviewId(interview.id);
+                                setShowDeleteModal(true);
+                              }}
+                              className="w-full px-4 py-3 border border-red-500/30 text-red-400 font-medium rounded-lg hover:bg-red-500/10 hover:border-red-500/50 transition-all text-sm flex items-center justify-center gap-2"
+                              title="Delete Interview"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Candidate Info */}
-                  <div className="mb-4 pb-4 border-b border-[#3F9AAE]/20">
-                    <p className="text-sm font-semibold text-[#79C9C5] mb-1">Candidate</p>
-                    <p className="text-white">{interview.candidateName}</p>
-                  </div>
-
-                  {/* Date */}
-                  <div className="flex items-center space-x-2 text-sm text-[#79C9C5] mb-6">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span>{new Date(interview.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                  </div>
-
-                  {/* Questions Progress */}
-                  {interview.status === 'in_progress' && interview.interviewQuestions && (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-semibold text-[#79C9C5]">Progress</p>
-                        <p className="text-xs font-semibold text-[#79C9C5]">
-                          {interview.interviewQuestions.filter((q: any) => q.feedback).length} /{' '}
-                          {interview.interviewQuestions.length}
-                        </p>
-                      </div>
-                      <div className="w-full bg-slate-700/30 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] h-full transition-all duration-300"
-                          style={{
-                            width: `${
-                              (interview.interviewQuestions.filter((q: any) => q.feedback).length /
-                                interview.interviewQuestions.length) *
-                              100
-                            }%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Stats */}
-                  {interview.status === 'completed' && interview.interviewQuestions && (
-                    <div className="grid grid-cols-2 gap-3 mb-6">
-                      <div className="bg-[#3F9AAE]/20 rounded-lg p-3 text-center border border-[#3F9AAE]/30">
-                        <p className="text-2xl font-bold text-[#79C9C5]">{interview.interviewQuestions.length}</p>
-                        <p className="text-xs text-[#79C9C5] font-medium">Questions</p>
-                      </div>
-                      <div className="bg-emerald-500/20 rounded-lg p-3 text-center border border-emerald-500/30">
-                        <p className="text-2xl font-bold text-emerald-300">
-                          {interview.interviewQuestions.filter((q: any) => q.feedback).length}
-                        </p>
-                        <p className="text-xs text-emerald-300 font-medium">Rated</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    {interview.status === 'in_progress' ? (
-                      <>
-                        <Link
-                          href={`/interviews/${interview.id}/conduct`}
-                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all text-center text-sm"
-                        >
-                          Continue
-                        </Link>
-                        <Link
-                          href={`/interviews/${interview.id}`}
-                          className="px-4 py-2.5 border border-[#3F9AAE]/30 text-[#79C9C5] font-medium rounded-lg hover:bg-[#3F9AAE]/10 hover:border-[#3F9AAE] transition-colors"
-                          title="View Details"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setDeleteInterviewId(interview.id);
-                            setShowDeleteModal(true);
-                          }}
-                          className="px-4 py-2.5 border border-red-500/30 text-red-400 font-medium rounded-lg hover:bg-red-500/10 hover:border-red-500 transition-colors"
-                          title="Delete Interview"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <Link
-                          href={`/interviews/${interview.id}`}
-                          className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all text-center text-sm"
-                        >
-                          View Results
-                        </Link>
-                        <button
-                          onClick={() => {
-                            setDeleteInterviewId(interview.id);
-                            setShowDeleteModal(true);
-                          }}
-                          className="px-4 py-2.5 border border-red-500/30 text-red-400 font-medium rounded-lg hover:bg-red-500/10 hover:border-red-500 transition-colors"
-                          title="Delete Interview"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </>
-                    )}
                   </div>
                 </div>
+              ))}
+            </div>
+          ) : (
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-400/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-lg rounded-2xl"></div>
+              <div className="relative p-12 text-center rounded-2xl bg-gradient-to-br from-white/5 to-white/2 border-2 border-dashed border-white/20 group-hover:border-white/40 transition-all">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-400/10 flex items-center justify-center mx-auto mb-4 text-blue-400 text-2xl">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4" />
+                  </svg>
+                </div>
+                <p className="text-slate-300 font-light mb-2 text-lg">No interviews yet</p>
+                <p className="text-slate-400 font-light mb-6">
+                  {filterStatus === 'all'
+                    ? 'Create a new interview to get started'
+                    : `No ${filterStatus === 'in_progress' ? 'in-progress' : 'completed'} interviews`}
+                </p>
+                {filterStatus === 'all' && (
+                  <Link
+                    href="/interviews/new"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-400 to-blue-600 text-white rounded-lg text-sm font-bold hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 transition-all"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Start Your First Interview
+                  </Link>
+                )}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-slate-800 rounded-xl shadow-lg p-16 text-center border border-[#3F9AAE]/30">
-            <div className="w-16 h-16 rounded-full bg-[#3F9AAE]/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-[#79C9C5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7 12a5 5 0 1110 0 5 5 0 01-10 0z" />
-              </svg>
             </div>
-            <h3 className="text-lg font-bold text-white mb-2">No interviews yet</h3>
-            <p className="text-[#79C9C5] mb-8">
-              {filterStatus === 'all'
-                ? 'Create a new interview to get started'
-                : `No ${filterStatus === 'in_progress' ? 'in-progress' : 'completed'} interviews`}
-            </p>
-            {filterStatus === 'all' && (
-              <Link
-                href="/interviews/new"
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Start Your First Interview</span>
-              </Link>
-            )}
-          </div>
-        )}
+          )}
 
-        {/* Quick Links */}
-        <div className="mt-12 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] rounded-xl p-8 text-white shadow-lg">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xl font-bold mb-2">Want to create a new template?</h3>
-              <p className="text-[#FFE2AF]/80">Design custom interview templates to match your evaluation needs</p>
+          {/* Premium CTA Section */}
+          {Array.isArray(interviews) && interviews.length > 0 && (
+            <div className="mt-16 relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400/40 via-blue-400/40 to-purple-400/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+              <div className="relative bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-2xl p-8 border border-white/20 backdrop-blur-xl">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Want to create a new template?</h3>
+                    <p className="text-slate-300 font-light">Design custom interview templates to match your evaluation needs</p>
+                  </div>
+                  <Link
+                    href="/templates"
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-slate-900 rounded-lg font-bold hover:bg-slate-100 transition-all whitespace-nowrap shadow-lg hover:shadow-2xl"
+                  >
+                    <span>View Templates</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </Link>
+                </div>
+              </div>
             </div>
-            <Link
-              href="/templates"
-              className="flex items-center space-x-2 px-6 py-3 bg-white text-[#3F9AAE] rounded-lg font-semibold hover:bg-slate-100 transition-colors whitespace-nowrap"
-            >
-              <span>View Templates</span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+          )}
+        </main>
+      </div>
 
     {/* Delete Confirmation Modal */}
     {showDeleteModal && deleteInterviewId && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-2xl border border-[#3F9AAE]/30 max-w-md w-full p-6">
-          <div className="flex items-center justify-center w-12 h-12 bg-red-500/20 rounded-full mx-auto mb-4">
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div className="bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950/95 rounded-2xl shadow-2xl border border-white/15 max-w-md w-full p-8 backdrop-blur-xl">
+          <div className="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-red-500/20 to-red-400/10 rounded-full mx-auto mb-4">
             <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4v2m0 0v2m0-2H9m3 0h3M7 5a2 2 0 110 4h.01a2 2 0 11.98-2H7zm10 0a2 2 0 110 4h.01a2 2 0 11.98-2h-1.99z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           
-          <h3 className="text-xl font-bold text-white text-center mb-2">Delete Interview?</h3>
+          <h3 className="text-2xl font-bold text-white text-center mb-3">Delete Interview?</h3>
           
           {(() => {
             const interviewToDelete = interviews?.find((i: any) => i.id === deleteInterviewId);
             return (
               <>
-                <p className="text-[#79C9C5] text-center mb-4 text-sm">
+                <p className="text-slate-300 text-center mb-4 text-sm font-light">
                   Are you sure you want to delete the interview for <span className="font-semibold text-white">{interviewToDelete?.candidateName}</span>? This action cannot be undone.
                 </p>
                 {interviewToDelete?.template && (
@@ -391,14 +437,14 @@ export default function InterviewsPage() {
                 setDeleteInterviewId(null);
               }}
               disabled={isDeleting}
-              className="flex-1 px-4 py-2.5 border border-[#3F9AAE]/30 text-[#79C9C5] font-medium rounded-lg hover:bg-[#3F9AAE]/10 hover:border-[#3F9AAE] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/5 hover:border-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               onClick={handleDeleteInterview}
               disabled={isDeleting}
-              className="flex-1 px-4 py-2.5 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-red-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isDeleting ? (
                 <>

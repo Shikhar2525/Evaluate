@@ -276,30 +276,36 @@ export default function TemplateDetailPage() {
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <Loader message="Loading template..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-slate-950 relative overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-br from-cyan-500/25 to-blue-500/25 rounded-full blur-3xl opacity-40 animate-blob" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute top-1/2 -right-48 w-96 h-96 bg-gradient-to-br from-blue-500/25 to-purple-500/25 rounded-full blur-3xl opacity-40 animate-blob" style={{ animationDelay: '4s' }}></div>
+      </div>
+
       {/* Header with Back Button and Template Name */}
-      <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-[#3F9AAE]/10 border-b border-[#3F9AAE]/30 backdrop-blur-lg sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-6">
+      <div className="relative border-b border-cyan-500/20 bg-gradient-to-r from-white/8 via-white/4 to-transparent backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center gap-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[#3F9AAE]/20 transition-all text-[#79C9C5]"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-cyan-500/20 transition-all text-cyan-300 font-medium"
             title="Go back"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm">Back</span>
           </button>
-          <div className="h-8 w-px bg-[#3F9AAE]/30" />
+          <div className="h-8 w-px bg-cyan-500/30" />
           <div className="flex-1">
-            <p className="text-[#FFE2AF] text-xs font-semibold tracking-wide">EDIT TEMPLATE</p>
+            <p className="text-cyan-400 text-xs font-bold tracking-widest uppercase">Edit Template</p>
             {editing === 'name' ? (
               <div className="flex items-center gap-2 mt-1">
                 <input
@@ -314,17 +320,17 @@ export default function TemplateDetailPage() {
                       setEditing(null);
                     }
                   }}
-                  className="px-3 py-1 bg-slate-700 border border-[#3F9AAE]/50 rounded-lg text-lg font-bold text-white focus:outline-none focus:border-[#3F9AAE]"
+                  className="px-4 py-2 bg-white/10 border border-cyan-500/40 rounded-lg text-2xl font-black text-white focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent backdrop-blur-sm"
                 />
                 <button
                   onClick={() => handleUpdateTemplate('name', editValues.name)}
-                  className="px-2 py-1 bg-green-600/50 hover:bg-green-600 rounded text-sm text-white transition-all"
+                  className="px-3 py-2 bg-green-600/50 hover:bg-green-600 rounded-lg text-sm text-white transition-all font-bold"
                 >
                   Save
                 </button>
                 <button
                   onClick={() => setEditing(null)}
-                  className="px-2 py-1 bg-slate-600/50 hover:bg-slate-600 rounded text-sm text-white transition-all"
+                  className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-all font-bold backdrop-blur-sm"
                 >
                   Cancel
                 </button>
@@ -335,7 +341,7 @@ export default function TemplateDetailPage() {
                   setEditing('name');
                   setEditValues({ ...editValues, name: template.name });
                 }}
-                className="text-2xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+                className="text-3xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
                 title="Click to edit template name"
               >
                 {template.name}
@@ -345,9 +351,9 @@ export default function TemplateDetailPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 py-4">
-        <div className="mb-12 bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-8 border border-[#3F9AAE]/30 shadow-xl backdrop-blur-sm">
-          <h2 className="text-sm font-bold text-transparent bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text mb-4 uppercase tracking-widest">Description</h2>
+      <main className="relative max-w-7xl mx-auto px-6 py-8">
+        <div className="mb-12 bg-gradient-to-br from-white/8 to-white/3 rounded-2xl p-8 border border-cyan-500/20 shadow-2xl backdrop-blur-2xl">
+          <h2 className="text-sm font-bold text-cyan-300 mb-4 uppercase tracking-widest">Description</h2>
           {editing === 'description' ? (
             <div className="space-y-3">
               <RichTextEditor
@@ -358,13 +364,13 @@ export default function TemplateDetailPage() {
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setEditing(null)}
-                  className="px-4 py-2 bg-slate-700 text-slate-200 rounded-lg text-sm font-medium hover:bg-slate-600 transition-all"
+                  className="px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-bold hover:bg-white/20 transition-all backdrop-blur-sm"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleUpdateTemplate('description', editValues.description)}
-                  className="px-4 py-2 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg text-sm font-bold hover:shadow-lg hover:shadow-cyan-500/40 transition-all"
                 >
                   Save
                 </button>
@@ -376,42 +382,45 @@ export default function TemplateDetailPage() {
                 setEditing('description');
                 setEditValues({ description: template.description || '' });
               }}
-              className="min-h-20 p-4 rounded-xl bg-slate-700/30 cursor-pointer hover:bg-slate-700/50 transition-all border border-[#3F9AAE]/20 hover:border-[#3F9AAE]/50 flex items-center text-[#79C9C5]"
+              className="min-h-20 p-4 rounded-xl bg-white/5 cursor-pointer hover:bg-white/10 transition-all border border-cyan-500/30 hover:border-cyan-400/50 flex items-center text-cyan-300 backdrop-blur-sm"
             >
               {template.description ? (
-                <RichTextDisplay content={template.description} className="text-slate-200" />
+                <RichTextDisplay content={template.description} className="text-white/90" />
               ) : (
-                <p className="text-slate-500 italic">Click here to add description...</p>
+                <p className="text-white/50 italic">Click here to add description...</p>
               )}
             </div>
           )}
         </div>
 
         <div className="space-y-6 mb-8">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent">Sections</h2>
+          <h2 className="text-3xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">Sections</h2>
           {objectToArray(template.sections).length > 0 ? (
             objectToArray(template.sections).map((section: any) => (
-              <div key={section.id} className="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl shadow-xl border border-[#3F9AAE]/30 overflow-hidden hover:shadow-2xl hover:shadow-[#3F9AAE]/20 transition-all duration-300 backdrop-blur-sm">
+              <div key={section.id} className="bg-gradient-to-br from-white/8 to-white/3 rounded-2xl shadow-2xl border border-cyan-500/20 overflow-hidden hover:shadow-cyan-500/30 hover:border-cyan-400/40 transition-all duration-300 backdrop-blur-2xl">
                 <div
                   onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                  className="p-6 border-b border-[#3F9AAE]/20 bg-gradient-to-r from-slate-800/80 via-[#3F9AAE]/10 to-slate-800/80 cursor-pointer hover:from-slate-800 hover:via-[#3F9AAE]/20 hover:to-slate-800 transition-all duration-200"
+                  className="p-6 border-b border-cyan-500/20 bg-gradient-to-r from-cyan-500/10 via-blue-500/5 to-transparent cursor-pointer hover:from-cyan-500/15 hover:via-blue-500/10 transition-all duration-200 relative"
                 >
-                  <div className="flex items-center justify-between">
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -skew-x-12 translate-x-full group-hover:translate-x-0"></div>
+
+                  <div className="relative flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] text-white text-sm font-bold flex-shrink-0 shadow-lg">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 text-white text-sm font-black flex-shrink-0 shadow-lg">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                           </svg>
                         </div>
                         <h3 className="text-xl font-bold text-white">{section.title}</h3>
                         {section.codeLanguage && (
-                          <span className="px-3 py-1 text-xs font-semibold rounded-full bg-[#3F9AAE]/50 text-[#FFE2AF] border border-[#3F9AAE]/50">
+                          <span className="px-3 py-1 text-xs font-bold rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 uppercase tracking-wide">
                             {section.codeLanguage}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-[#79C9C5]/80 ml-11">{objectToArray(section.questions).length || 0} questions</p>
+                      <p className="text-sm text-cyan-300/80 ml-11">{objectToArray(section.questions).length || 0} questions</p>
                     </div>
                     <div className="flex items-center gap-2 relative">
                       <button
@@ -419,14 +428,14 @@ export default function TemplateDetailPage() {
                           e.stopPropagation();
                           setShowDeleteSectionConfirm(showDeleteSectionConfirm === section.id ? null : section.id);
                         }}
-                        className="p-2 hover:bg-[#F96E5B]/20 rounded-lg transition-all text-[#79C9C5] hover:text-[#F96E5B]"
+                        className="p-2 hover:bg-red-500/20 rounded-lg transition-all text-cyan-300 hover:text-red-400"
                         title="Delete section"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
-                      <div className={`p-2 text-[#79C9C5] transition-transform duration-300 ${expandedSection === section.id ? 'rotate-180' : ''}`}>
+                      <div className={`p-2 text-cyan-300 transition-transform duration-300 ${expandedSection === section.id ? 'rotate-180' : ''}`}>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                         </svg>
@@ -689,27 +698,27 @@ export default function TemplateDetailPage() {
                       </div>
                     )}
 
-                    <div className="mt-6 pt-6 border-t border-[#3F9AAE]/30">
-                      <h4 className="text-sm font-bold text-[#FFE2AF] mb-4 uppercase tracking-wider">Add New Question</h4>
-                      <div className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 rounded-xl p-6 border border-[#3F9AAE]/30 space-y-4">
+                    <div className="mt-6 pt-6 border-t border-cyan-500/30">
+                      <h4 className="text-sm font-bold text-cyan-300 mb-4 uppercase tracking-widest">Add New Question</h4>
+                      <div className="bg-gradient-to-br from-white/8 to-white/3 rounded-2xl p-6 border border-cyan-500/20 space-y-4 backdrop-blur-2xl">
                         <div>
-                          <label className="block text-xs font-semibold text-[#FFE2AF] mb-2 uppercase tracking-wider">Question Text *</label>
+                          <label className="block text-xs font-bold text-cyan-300 mb-3 uppercase tracking-widest">Question Text <span className="text-red-400">*</span></label>
                           <input
                             type="text"
                             placeholder="Enter the question..."
                             value={newQuestion.text}
                             onChange={(e) => setNewQuestion({ ...newQuestion, text: e.target.value })}
-                            className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white placeholder-slate-400"
+                            className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white placeholder-cyan-400/40 backdrop-blur-sm transition-all font-medium"
                           />
                         </div>
 
                         <div className="grid grid-cols-1 gap-4">
                           <div>
-                            <label className="block text-xs font-semibold text-[#FFE2AF] mb-2 uppercase tracking-wider">Difficulty Level</label>
+                            <label className="block text-xs font-bold text-cyan-300 mb-3 uppercase tracking-widest">Difficulty Level <span className="text-red-400">*</span></label>
                             <select
                               value={newQuestion.difficulty}
                               onChange={(e) => setNewQuestion({ ...newQuestion, difficulty: e.target.value })}
-                              className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white"
+                              className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
                             >
                               <option value="easy">Easy</option>
                               <option value="medium">Medium</option>
@@ -719,23 +728,23 @@ export default function TemplateDetailPage() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-[#FFE2AF] mb-2 uppercase tracking-wider">Code Snippet (Optional)</label>
+                          <label className="block text-xs font-bold text-cyan-300 mb-3 uppercase tracking-widest">Code Snippet (Optional)</label>
                           <textarea
                             placeholder="Paste code example here..."
                             value={newQuestion.codeSnippet}
                             onChange={(e) => setNewQuestion({ ...newQuestion, codeSnippet: e.target.value })}
-                            className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white placeholder-slate-400 resize-vertical"
+                            className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white placeholder-cyan-400/40 resize-vertical backdrop-blur-sm transition-all font-medium"
                             rows={3}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-[#FFE2AF] mb-2 uppercase tracking-wider">Expected Answer (Optional)</label>
+                          <label className="block text-xs font-bold text-cyan-300 mb-3 uppercase tracking-widest">Expected Answer (Optional)</label>
                           <textarea
                             placeholder="Enter the ideal or expected answer..."
                             value={newQuestion.expectedAnswer}
                             onChange={(e) => setNewQuestion({ ...newQuestion, expectedAnswer: e.target.value })}
-                            className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white placeholder-slate-400 resize-vertical"
+                            className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white placeholder-cyan-400/40 resize-vertical backdrop-blur-sm transition-all font-medium"
                             rows={3}
                           />
                         </div>
@@ -743,7 +752,7 @@ export default function TemplateDetailPage() {
                         <button
                           onClick={() => handleAddQuestion(section.id)}
                           disabled={!newQuestion.text.trim()}
-                          className="w-full px-6 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
                         >
                           <span className="flex items-center justify-center gap-2">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -759,46 +768,46 @@ export default function TemplateDetailPage() {
               </div>
             ))
           ) : (
-            <div className="text-center py-12 bg-slate-800 rounded-xl border border-[#3F9AAE]/30 backdrop-blur-sm">
-              <p className="text-[#79C9C5]">No sections yet. Create one below.</p>
+            <div className="text-center py-12 bg-gradient-to-br from-white/8 to-white/3 rounded-2xl border border-cyan-500/20 backdrop-blur-2xl">
+              <p className="text-cyan-300/80 font-semibold">No sections yet. Create one below.</p>
             </div>
           )}
         </div>
 
-        <div className="mt-8 bg-gradient-to-br from-slate-800 via-slate-800/50 to-slate-800 rounded-xl shadow-md border border-[#3F9AAE]/30 p-8 backdrop-blur-sm">
+        <div className="mt-8 bg-gradient-to-br from-white/8 via-white/5 to-cyan-500/10 rounded-2xl shadow-2xl border border-cyan-500/20 p-8 backdrop-blur-2xl">
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] text-white font-bold">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 text-white font-black shadow-lg">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-[#FFE2AF]">Add New Section</h3>
+            <h3 className="text-xl font-bold text-white">Add New Section</h3>
           </div>
           {validationError && (
-            <div className="mb-4 p-3 bg-[#F96E5B]/20 border border-[#F96E5B] rounded-lg flex items-start gap-2">
-              <svg className="w-5 h-5 text-[#F96E5B] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mb-4 p-3 bg-red-500/15 border border-red-500/30 rounded-lg flex items-start gap-2 backdrop-blur-sm">
+              <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm text-[#FFE2AF]">{validationError}</p>
+              <p className="text-sm text-red-300">{validationError}</p>
             </div>
           )}
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-[#FFE2AF] mb-2">Section Title *</label>
+              <label className="block text-sm font-bold text-cyan-300 mb-2 uppercase tracking-wide">Section Title <span className="text-red-400">*</span></label>
               <input
                 type="text"
                 placeholder="e.g., React Fundamentals, JavaScript Basics..."
                 value={newSection.title}
                 onChange={(e) => setNewSection({ ...newSection, title: e.target.value })}
-                className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white placeholder-slate-400"
+                className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white placeholder-cyan-400/40 backdrop-blur-sm transition-all font-medium"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-[#FFE2AF] mb-2">Default Code Language *</label>
+              <label className="block text-sm font-bold text-cyan-300 mb-2 uppercase tracking-wide">Default Code Language <span className="text-red-400">*</span></label>
               <select
                 value={newSection.codeLanguage}
                 onChange={(e) => setNewSection({ ...newSection, codeLanguage: e.target.value })}
-                className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white"
+                className="w-full px-4 py-3 border border-cyan-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
               >
                 <option value="">Select a Language</option>
                 <option value="javascript">JavaScript</option>
@@ -828,7 +837,7 @@ export default function TemplateDetailPage() {
             <button
               onClick={handleAddSection}
               disabled={!newSection.title.trim()}
-              className="w-full px-6 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
             >
               <span className="flex items-center justify-center gap-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -845,21 +854,21 @@ export default function TemplateDetailPage() {
       {showDeleteSectionConfirm && (
         <>
           <div 
-            className="fixed inset-0 bg-black/50 z-[9998]" 
+            className="fixed inset-0 bg-black/50 z-[9998] backdrop-blur-sm" 
             onClick={() => setShowDeleteSectionConfirm(null)}
           />
           <div 
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-slate-800 to-slate-900 border border-[#F96E5B]/50 rounded-xl shadow-2xl z-[9999] min-w-96"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-white/10 to-white/5 border border-red-500/30 rounded-2xl shadow-2xl z-[9999] min-w-96 backdrop-blur-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-4 border-b border-[#F96E5B]/30">
-              <p className="text-sm text-slate-100 font-semibold">Delete Section?</p>
-              <p className="text-xs text-slate-400 mt-1">This will remove the section and all its questions</p>
+            <div className="p-6 border-b border-red-500/30">
+              <p className="text-white font-bold text-lg">Delete Section?</p>
+              <p className="text-red-300 text-sm mt-1">This will remove the section and all its questions</p>
             </div>
-            <div className="flex gap-2 p-4 justify-end">
+            <div className="flex gap-2 p-6 justify-end">
               <button
                 onClick={() => setShowDeleteSectionConfirm(null)}
-                className="px-4 py-2 text-sm bg-slate-700 text-slate-200 rounded-lg hover:bg-slate-600 transition-colors font-medium"
+                className="px-4 py-2 text-sm bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors font-bold backdrop-blur-sm"
               >
                 Cancel
               </button>
@@ -868,7 +877,7 @@ export default function TemplateDetailPage() {
                   handleDeleteSection(showDeleteSectionConfirm);
                   setShowDeleteSectionConfirm(null);
                 }}
-                className="px-4 py-2 text-sm bg-gradient-to-r from-[#F96E5B] to-[#FF6B5B] text-white rounded-lg hover:shadow-lg hover:shadow-[#F96E5B]/50 transition-all font-medium"
+                className="px-4 py-2 text-sm bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg hover:shadow-red-500/40 transition-all font-bold"
               >
                 Delete
               </button>
