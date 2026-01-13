@@ -468,7 +468,7 @@ export default function InterviewConductPage() {
                     className="w-9 h-9 rounded-lg font-bold text-xs transition-all flex items-center justify-center flex-shrink-0 border-2 hover:scale-110"
                     title={`Question ${index + 1}`}
                     style={{
-                      borderColor: status === 'saved' ? '#10b981' : status === 'skipped' ? '#ef4444' : status === 'visited' ? '#ef4444' : sectionColor.hex,
+                      borderColor: status === 'saved' ? '#10b981' : status === 'skipped' ? '#ef4444' : '#6b7280',
                       backgroundColor: isActive
                         ? sectionColor.hex
                         : status === 'saved'
