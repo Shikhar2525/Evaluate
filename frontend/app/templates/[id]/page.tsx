@@ -1,15 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
-import { templatesAPI } from '@/lib/api';
+import { templatesAPI, objectToArray } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import RichTextEditor from '@/lib/components/rich-text-editor';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function TemplateDetailPage() {
+  useLayoutEffect(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+  }, []);
   const { user, loading } = useAuth();
   const { clearAuth } = useAuthStore();
   const router = useRouter();
@@ -23,7 +31,7 @@ export default function TemplateDetailPage() {
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [editQuestionValues, setEditQuestionValues] = useState<any>({});
   const [newSection, setNewSection] = useState({ title: '', codeLanguage: 'javascript' });
-  const [newQuestion, setNewQuestion] = useState({ text: '', codeSnippet: '', difficulty: '', expectedAnswer: '' });
+  const [newQuestion, setNewQuestion] = useState({ text: '', codeSnippet: '', difficulty: 'easy', expectedAnswer: '' });
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -104,7 +112,7 @@ export default function TemplateDetailPage() {
       }
       setTemplate({
         ...template,
-        sections: [...(template.sections || []), response.data],
+        sections: { ...template.sections, [response.data.id]: response.data },
       });
       setNewSection({ title: '', codeLanguage: 'javascript' });
     } catch (err: any) {
@@ -118,9 +126,11 @@ export default function TemplateDetailPage() {
     try {
       console.log('Attempting to delete section:', sectionId);
       await templatesAPI.deleteSection(templateId, sectionId);
+      const updatedSections = { ...template.sections };
+      delete updatedSections[sectionId];
       setTemplate({
         ...template,
-        sections: template.sections.filter((s: any) => s.id !== sectionId),
+        sections: updatedSections,
       });
       console.log('Section deleted successfully');
     } catch (err: any) {
@@ -141,13 +151,18 @@ export default function TemplateDetailPage() {
       const response = await templatesAPI.addQuestion(templateId, sectionId, newQuestion);
       setTemplate({
         ...template,
-        sections: template.sections.map((s: any) =>
-          s.id === sectionId
-            ? { ...s, questions: [...(s.questions || []), response.data] }
-            : s
-        ),
+        sections: {
+          ...template.sections,
+          [sectionId]: {
+            ...template.sections[sectionId],
+            questions: {
+              ...(template.sections[sectionId].questions || {}),
+              [response.data.id]: response.data,
+            },
+          },
+        },
       });
-      setNewQuestion({ text: '', codeSnippet: '', difficulty: '', expectedAnswer: '' });
+      setNewQuestion({ text: '', codeSnippet: '', difficulty: 'easy', expectedAnswer: '' });
     } catch (err) {
       console.error('Failed to add question:', err);
     }
@@ -157,20 +172,32 @@ export default function TemplateDetailPage() {
     try {
       console.log('Attempting to delete question:', questionId);
       // Find the section containing this question
-      const section = template.sections.find((s: any) =>
-        s.questions?.some((q: any) => q.id === questionId)
-      );
-      if (!section) throw new Error('Section not found');
+      let foundSectionId = null;
+      for (const [sectionId, section] of Object.entries(template.sections)) {
+        const questions = objectToArray((section as any).questions);
+        if (questions.some((q: any) => q.id === questionId)) {
+          foundSectionId = sectionId;
+          break;
+        }
+      }
       
-      const response = await templatesAPI.deleteQuestion(templateId, section.id, questionId);
+      if (!foundSectionId) throw new Error('Section not found');
+      
+      const response = await templatesAPI.deleteQuestion(templateId, foundSectionId, questionId);
       console.log('Delete response:', response);
+      
+      const updatedQuestions = { ...template.sections[foundSectionId].questions };
+      delete updatedQuestions[questionId];
       
       setTemplate({
         ...template,
-        sections: template.sections.map((section: any) => ({
-          ...section,
-          questions: section.questions ? section.questions.filter((q: any) => q.id !== questionId) : [],
-        })),
+        sections: {
+          ...template.sections,
+          [foundSectionId]: {
+            ...template.sections[foundSectionId],
+            questions: updatedQuestions,
+          },
+        },
       });
       setShowDeleteConfirm(null);
     } catch (err: any) {
@@ -187,20 +214,33 @@ export default function TemplateDetailPage() {
   const handleUpdateQuestion = async (questionId: string) => {
     try {
       // Find the section containing this question
-      const section = template.sections.find((s: any) =>
-        s.questions?.some((q: any) => q.id === questionId)
-      );
-      if (!section) throw new Error('Section not found');
+      let foundSectionId = null;
+      for (const [sectionId, section] of Object.entries(template.sections)) {
+        const questions = objectToArray((section as any).questions);
+        if (questions.some((q: any) => q.id === questionId)) {
+          foundSectionId = sectionId;
+          break;
+        }
+      }
       
-      await templatesAPI.updateQuestion(templateId, section.id, questionId, editQuestionValues);
+      if (!foundSectionId) throw new Error('Section not found');
+      
+      await templatesAPI.updateQuestion(templateId, foundSectionId, questionId, editQuestionValues);
       setTemplate({
         ...template,
-        sections: template.sections.map((s: any) => ({
-          ...s,
-          questions: s.questions.map((q: any) =>
-            q.id === questionId ? { ...q, ...editQuestionValues } : q
-          ),
-        })),
+        sections: {
+          ...template.sections,
+          [foundSectionId]: {
+            ...template.sections[foundSectionId],
+            questions: {
+              ...template.sections[foundSectionId].questions,
+              [questionId]: {
+                ...template.sections[foundSectionId].questions[questionId],
+                ...editQuestionValues,
+              },
+            },
+          },
+        },
       });
       setEditingQuestion(null);
       setEditQuestionValues({});
@@ -233,10 +273,13 @@ export default function TemplateDetailPage() {
     router.push('/sign-in');
   }, [clearAuth, router]);
 
-  if (!template || templateLoading) {
+  if (!template) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <div>Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-slate-950">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-neutral-400">Loading template...</p>
+        </div>
       </div>
     );
   }
@@ -257,11 +300,49 @@ export default function TemplateDetailPage() {
             <span className="text-sm font-medium">Back</span>
           </button>
           <div className="h-8 w-px bg-[#3F9AAE]/30" />
-          <div>
+          <div className="flex-1">
             <p className="text-[#FFE2AF] text-xs font-semibold tracking-wide">EDIT TEMPLATE</p>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent">
-              {template.name}
-            </h1>
+            {editing === 'name' ? (
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  autoFocus
+                  type="text"
+                  value={editValues.name || template.name}
+                  onChange={(e) => setEditValues({ ...editValues, name: e.target.value })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleUpdateTemplate('name', editValues.name);
+                    } else if (e.key === 'Escape') {
+                      setEditing(null);
+                    }
+                  }}
+                  className="px-3 py-1 bg-slate-700 border border-[#3F9AAE]/50 rounded-lg text-lg font-bold text-white focus:outline-none focus:border-[#3F9AAE]"
+                />
+                <button
+                  onClick={() => handleUpdateTemplate('name', editValues.name)}
+                  className="px-2 py-1 bg-green-600/50 hover:bg-green-600 rounded text-sm text-white transition-all"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setEditing(null)}
+                  className="px-2 py-1 bg-slate-600/50 hover:bg-slate-600 rounded text-sm text-white transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <h1
+                onClick={() => {
+                  setEditing('name');
+                  setEditValues({ ...editValues, name: template.name });
+                }}
+                className="text-2xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent cursor-pointer hover:opacity-80 transition-opacity"
+                title="Click to edit template name"
+              >
+                {template.name}
+              </h1>
+            )}
           </div>
         </div>
       </div>
@@ -310,8 +391,8 @@ export default function TemplateDetailPage() {
 
         <div className="space-y-6 mb-8">
           <h2 className="text-3xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent">Sections</h2>
-          {template.sections && template.sections.length > 0 ? (
-            template.sections.map((section: any) => (
+          {objectToArray(template.sections).length > 0 ? (
+            objectToArray(template.sections).map((section: any) => (
               <div key={section.id} className="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl shadow-xl border border-[#3F9AAE]/30 overflow-hidden hover:shadow-2xl hover:shadow-[#3F9AAE]/20 transition-all duration-300 backdrop-blur-sm">
                 <div
                   onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
@@ -332,7 +413,7 @@ export default function TemplateDetailPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-[#79C9C5]/80 ml-11">{section.questions?.length || 0} questions</p>
+                      <p className="text-sm text-[#79C9C5]/80 ml-11">{objectToArray(section.questions).length || 0} questions</p>
                     </div>
                     <div className="flex items-center gap-2 relative">
                       <button
@@ -358,8 +439,8 @@ export default function TemplateDetailPage() {
 
                 {expandedSection === section.id && (
                   <div className="p-6 space-y-4">
-                    {section.questions && section.questions.length > 0 ? (
-                      section.questions.map((question: any, index: number) => (
+                    {objectToArray(section.questions).length > 0 ? (
+                      objectToArray(section.questions).map((question: any, index: number) => (
                         <div key={question.id} className="bg-gradient-to-br from-slate-700/50 to-slate-700/30 rounded-xl border border-[#3F9AAE]/30 overflow-hidden hover:shadow-xl hover:shadow-[#3F9AAE]/10 transition-all backdrop-blur-sm">
                           {editingQuestion === question.id ? (
                             <div className="p-6 bg-slate-800/50 border-b border-[#3F9AAE]/20 space-y-4 backdrop-blur-sm">
@@ -389,10 +470,9 @@ export default function TemplateDetailPage() {
                                   onChange={(e) => setEditQuestionValues({ ...editQuestionValues, difficulty: e.target.value })}
                                   className="w-full px-3 py-2 border border-[#3F9AAE]/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] bg-slate-700/50 text-white"
                                 >
-                                  <option value="" disabled>Select Difficulty</option>
-                                  <option value="Easy">Easy</option>
-                                  <option value="Medium">Medium</option>
-                                  <option value="Hard">Hard</option>
+                                  <option value="easy">Easy</option>
+                                  <option value="medium">Medium</option>
+                                  <option value="hard">Hard</option>
                                 </select>
                               </div>
                               <div>
@@ -468,11 +548,11 @@ export default function TemplateDetailPage() {
                                       <p className="text-white font-semibold">{question.text}</p>
                                       {question.difficulty && (
                                         <span className={`px-2 py-1 text-xs font-semibold rounded-full border whitespace-nowrap ${
-                                          question.difficulty === 'Easy' ? 'bg-[#79C9C5]/20 text-[#79C9C5] border-[#79C9C5]/50' :
-                                          question.difficulty === 'Medium' ? 'bg-[#FFE2AF]/20 text-[#FFE2AF] border-[#FFE2AF]/50' :
-                                          'bg-[#F96E5B]/20 text-[#F96E5B] border-[#F96E5B]/50'
+                                          question.difficulty === 'easy' ? 'bg-green-900/40 text-green-300 border-green-500/60' :
+                                          question.difficulty === 'medium' ? 'bg-yellow-900/40 text-yellow-300 border-yellow-500/60' :
+                                          'bg-red-900/40 text-red-300 border-red-500/60'
                                         }`}>
-                                          {question.difficulty}
+                                          {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
                                         </span>
                                       )}
                                     </div>
@@ -633,10 +713,9 @@ export default function TemplateDetailPage() {
                               onChange={(e) => setNewQuestion({ ...newQuestion, difficulty: e.target.value })}
                               className="w-full px-4 py-3 border border-[#3F9AAE]/50 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#3F9AAE] focus:border-transparent bg-slate-700/50 text-white"
                             >
-                              <option value="">Select Difficulty</option>
-                              <option value="Easy">Easy</option>
-                              <option value="Medium">Medium</option>
-                              <option value="Hard">Hard</option>
+                              <option value="easy">Easy</option>
+                              <option value="medium">Medium</option>
+                              <option value="hard">Hard</option>
                             </select>
                           </div>
                         </div>

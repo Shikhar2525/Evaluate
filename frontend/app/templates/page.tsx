@@ -1,16 +1,25 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { useAsyncData } from '@/lib/hooks';
-import { templatesAPI } from '@/lib/api';
+import { templatesAPI, objectToArray } from '@/lib/api';
 import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 import RichTextEditor from '@/lib/components/rich-text-editor';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function TemplatesPage() {
+  useLayoutEffect(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+  }, []);
+
   const { user, loading } = useAuth();
   const router = useRouter();
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -149,16 +158,16 @@ export default function TemplatesPage() {
         {templates && templates.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             {templates.map((template: any) => (
-              <div key={template.id} className="bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/20 transition-all duration-200 border border-[#3F9AAE]/30 overflow-hidden group animate-slide-in backdrop-blur-sm">
+              <div key={template.id} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/30 transition-all duration-300 border border-[#3F9AAE]/40 overflow-hidden group animate-slide-in backdrop-blur-sm">
                 <div className="p-6">
                   {/* Template Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors">
+                      <h3 className="text-xl font-bold text-white group-hover:text-[#FFE2AF] transition-colors mb-1">
                         {template.name}
                       </h3>
                     </div>
-                    <div className="ml-3 p-3 rounded-lg bg-[#3F9AAE]/20 text-[#79C9C5]">
+                    <div className="ml-3 p-2.5 rounded-lg bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] group-hover:from-[#3F9AAE]/40 group-hover:to-[#79C9C5]/30 transition-colors">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
@@ -167,38 +176,32 @@ export default function TemplatesPage() {
 
                   {/* Description */}
                   {template.description && (
-                    <div className="mb-4 pb-4 border-b border-[#3F9AAE]/20 text-[#79C9C5]">
-                      <RichTextDisplay content={template.description} className="text-sm line-clamp-3" />
-                    </div>
+                    <RichTextDisplay content={template.description} className="text-sm line-clamp-3 mb-5" />
                   )}
 
-                  {/* Stats */}
-                  <div className="flex items-center space-x-4 mb-6 pt-4 border-t border-[#3F9AAE]/20">
-                    <div className="flex items-center space-x-2 text-sm text-[#79C9C5]">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                      <span>{template.sections?.length || 0} sections</span>
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-3 mb-6 py-4 px-3 bg-gradient-to-r from-[#3F9AAE]/5 to-[#79C9C5]/5 rounded-lg border border-[#3F9AAE]/10">
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl font-bold text-[#79C9C5]">{objectToArray(template.sections)?.length || 0}</span>
+                      <span className="text-xs text-[#79C9C5]/60 uppercase tracking-wide">Sections</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm text-[#79C9C5]">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{template.sections?.reduce((sum: number, section: any) => sum + (section.questions?.length || 0), 0) || 0} questions</span>
+                    <div className="flex flex-col items-start">
+                      <span className="text-2xl font-bold text-[#79C9C5]">{objectToArray(template.sections)?.reduce((sum: number, section: any) => sum + (objectToArray(section.questions)?.length || 0), 0) || 0}</span>
+                      <span className="text-xs text-[#79C9C5]/60 uppercase tracking-wide">Questions</span>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-3">
+                  <div className="flex gap-2.5">
                     <Link
                       href={`/templates/${template.id}`}
-                      className="flex-1 px-4 py-2 border border-[#3F9AAE]/50 text-[#79C9C5] font-medium rounded-lg hover:bg-[#3F9AAE]/10 hover:border-[#3F9AAE] transition-colors text-center text-sm"
+                      className="flex-1 px-4 py-2.5 border border-[#3F9AAE]/50 text-[#79C9C5] font-medium rounded-lg hover:bg-[#3F9AAE]/15 hover:border-[#3F9AAE]/80 transition-all text-center text-sm"
                     >
                       Edit
                     </Link>
                     <Link
                       href={`/interviews/new?templateId=${template.id}`}
-                      className="flex-1 px-4 py-2 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all text-center text-sm"
+                      className="flex-1 px-4 py-2.5 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-medium rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/50 transition-all text-center text-sm hover:scale-105"
                     >
                       Start
                     </Link>

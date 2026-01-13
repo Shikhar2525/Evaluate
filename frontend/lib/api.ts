@@ -5,6 +5,13 @@ import {
   firebaseInterviewsService,
 } from './firebase-service';
 
+// Helper function to convert Firebase object to array
+export const objectToArray = (obj: any): any[] => {
+  if (!obj || typeof obj !== 'object') return [];
+  if (Array.isArray(obj)) return obj;
+  return Object.values(obj);
+};
+
 // Auth API - Using Firebase
 export const authAPI = {
   signUp: async (data: { email: string; password: string; firstName: string; lastName: string }) => {

@@ -61,8 +61,14 @@ export default function InterviewConductPage() {
   const rawQuestions = (() => {
     const questions: any[] = [];
     if (interview?.sections) {
-      Object.values(interview.sections).forEach((section: any) => {
-        if (section.questions) {
+      // Use sectionOrder if available, otherwise use Object.keys
+      const sectionIds = interview?.sectionOrder && interview.sectionOrder.length > 0
+        ? interview.sectionOrder
+        : Object.keys(interview.sections);
+      
+      sectionIds.forEach((sectionId: string) => {
+        const section = interview.sections[sectionId];
+        if (section && section.questions) {
           Object.values(section.questions).forEach((question: any) => {
             questions.push({
               ...question,
@@ -86,13 +92,10 @@ export default function InterviewConductPage() {
   // Get section for current question
   const getCurrentSection = () => {
     if (!interview?.template?.sections || !currentQuestion) return null;
-    for (const section of interview.template.sections) {
-      if (section.questions) {
-        for (const q of section.questions) {
-          if (q.id === currentQuestion.questionId) {
-            return section;
-          }
-        }
+    const templateSections = Object.values(interview.template.sections);
+    for (const section of templateSections) {
+      if ((section as any).id === currentQuestion.sectionId) {
+        return section;
       }
     }
     return null;
@@ -103,13 +106,10 @@ export default function InterviewConductPage() {
   // Get section for a specific question
   const getQuestionSection = (question: any) => {
     if (!interview?.template?.sections) return null;
-    for (const section of interview.template.sections) {
-      if (section.questions) {
-        for (const q of section.questions) {
-          if (q.id === question.questionId) {
-            return section;
-          }
-        }
+    const templateSections = Object.values(interview.template.sections);
+    for (const section of templateSections) {
+      if ((section as any).id === question.sectionId) {
+        return section;
       }
     }
     return null;
@@ -124,8 +124,9 @@ export default function InterviewConductPage() {
   ];
 
   const getSectionColor = (sectionId: string) => {
-    const sectionIndex = interview?.template?.sections?.findIndex((s: any) => s.id === sectionId) || 0;
-    return sectionColors[sectionIndex % sectionColors.length];
+    const templateSections = interview?.template?.sections ? Object.values(interview.template.sections) : [];
+    const sectionIndex = templateSections.findIndex((s: any) => s.id === sectionId);
+    return sectionColors[(sectionIndex >= 0 ? sectionIndex : 0) % sectionColors.length];
   };
 
   // Get question status
@@ -160,7 +161,7 @@ export default function InterviewConductPage() {
     }
     
     // Check if section changed
-    const newSection = currentSection;
+    const newSection = currentSection as any;
     if (newSection && previousSectionId && previousSectionId !== newSection.id) {
       setSectionNotificationText(`📍 ${newSection.title}`);
       setShowSectionNotification(true);
@@ -197,7 +198,7 @@ export default function InterviewConductPage() {
     };
     
     loadFeedback();
-  }, [currentQuestionIndex, currentQuestion?.id, currentSection?.id, previousSectionId]);
+  }, [currentQuestionIndex, currentQuestion?.id, (currentSection as any)?.id, previousSectionId]);
 
   // Handle rating click with auto-save
   const handleRatingClick = async (rating: number) => {
@@ -360,7 +361,7 @@ export default function InterviewConductPage() {
   return (
     <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen flex flex-col">
       {/* Top Bar */}
-      <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-[#3F9AAE]/10 border-b border-[#3F9AAE]/30 backdrop-blur-lg sticky top-0 z-50">
+      <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-[#3F9AAE]/10 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6 flex-1">
             <Link href="/interviews" className="p-2 hover:bg-[#3F9AAE]/20 rounded-lg text-[#79C9C5] transition-colors" title="Back to Interviews">
@@ -373,7 +374,7 @@ export default function InterviewConductPage() {
               <h2 className="text-xl font-bold bg-gradient-to-r from-[#79C9C5] to-[#FFE2AF] bg-clip-text text-transparent">
                 {interview?.candidateName ? `${interview.candidateName} • ${interview?.template?.name}` : interview?.template?.name}
               </h2>
-              {currentSection && <p className="text-[#79C9C5]/70 text-xs mt-1">📍 {currentSection.title}</p>}
+              {(currentSection as any) && <p className="text-[#79C9C5]/70 text-xs mt-1">📍 {(currentSection as any).title}</p>}
             </div>
           </div>
           <div className="flex items-center gap-8">
@@ -401,19 +402,19 @@ export default function InterviewConductPage() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Questions Tracker */}
-      <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-[#3F9AAE]/10 border-b border-[#3F9AAE]/30 backdrop-blur-lg sticky top-[72px] z-40 px-6 py-4">
-        <div className="flex items-center gap-6 overflow-x-auto ml-32">
-          <span className="text-xs font-semibold text-[#FFE2AF] whitespace-nowrap">QUESTIONS:</span>
-          {allQuestions.length > 0 ? (
+        {/* Questions Tracker */}
+        <div className="border-t border-[#3F9AAE]/30">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center gap-6 overflow-x-auto scrollbar-hide pr-4 ml-16">
+              <span className="text-xs font-semibold text-[#FFE2AF] whitespace-nowrap">QUESTIONS:</span>
+            {allQuestions.length > 0 ? (
             <div className="flex items-center gap-3">
               {allQuestions.map((question: any, index: number) => {
                 const status = getQuestionStatus(question);
                 const isActive = index === currentQuestionIndex;
                 const questionSection = getQuestionSection(question);
-                const sectionColor = questionSection ? getSectionColor(questionSection.id) : sectionColors[0];
+                const sectionColor = questionSection ? getSectionColor((questionSection as any).id) : sectionColors[0];
 
                 return (
                   <button
@@ -440,9 +441,11 @@ export default function InterviewConductPage() {
                 );
               })}
             </div>
-          ) : (
-            <div className="text-xs text-[#79C9C5]/50">Loading questions...</div>
-          )}
+            ) : (
+              <div className="text-xs text-[#79C9C5]/50">Loading questions...</div>
+            )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -465,22 +468,22 @@ export default function InterviewConductPage() {
               <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-12 mb-10 border border-[#3F9AAE]/30">
                 <div className="mb-6">
                   <p className="text-[#FFE2AF] text-sm font-bold tracking-widest mb-2">
-                    {currentSection?.title || 'Section'}
+                    {(currentSection as any)?.title || 'Section'}
                   </p>
                   <p className="text-[#79C9C5]/70 text-xs font-semibold tracking-wide">
                     QUESTION {currentQuestionIndex + 1} OF {totalQuestions} • 
-                    {currentSection ? ` ${allQuestions.filter((q: any) => getQuestionSection(q)?.id === currentSection.id).findIndex((q: any) => q.id === currentQuestion?.id) + 1} OF ${allQuestions.filter((q: any) => getQuestionSection(q)?.id === currentSection.id).length} IN SECTION` : ''}
+                    {currentSection ? ` ${allQuestions.filter((q: any) => (getQuestionSection(q) as any)?.id === (currentSection as any).id).findIndex((q: any) => q.id === currentQuestion?.id) + 1} OF ${allQuestions.filter((q: any) => (getQuestionSection(q) as any)?.id === (currentSection as any).id).length} IN SECTION` : ''}
                   </p>
                 </div>
                 <h3 className="text-4xl font-bold text-white leading-relaxed mb-8">
-                  {currentQuestion?.question?.text || 'Loading question...'}
+                  {currentQuestion?.text || 'Loading question...'}
                 </h3>
 
-                {currentQuestion.question?.codeSnippet && (
+                {currentQuestion?.codeSnippet && (
                   <div className="mb-10">
                     <p className="text-[#79C9C5] text-sm font-semibold mb-3">Code Snippet:</p>
                     <div className="bg-slate-900/80 text-[#79C9C5] p-6 rounded-xl font-mono text-sm overflow-x-auto border border-[#3F9AAE]/20">
-                      <pre className="whitespace-pre-wrap break-words">{currentQuestion.question.codeSnippet}</pre>
+                      <pre className="whitespace-pre-wrap break-words">{currentQuestion.codeSnippet}</pre>
                     </div>
                   </div>
                 )}
@@ -600,7 +603,7 @@ export default function InterviewConductPage() {
                     .filter((q: any) => q.feedback?.rating)
                     .map((q: any, idx: number) => (
                       <div key={q.id} className="text-emerald-400 text-sm">
-                        Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.question?.text?.substring(0, 60)}...
+                        Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.text?.substring(0, 60)}...
                       </div>
                     ))}
                 </div>
@@ -617,7 +620,7 @@ export default function InterviewConductPage() {
                     .filter((q: any) => !q.feedback?.rating && !q.skipped)
                     .map((q: any) => (
                       <div key={q.id} className="text-[#FFE2AF] text-sm">
-                        Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.question?.text?.substring(0, 60)}...
+                        Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.text?.substring(0, 60)}...
                       </div>
                     ))}
                 </div>
@@ -635,7 +638,7 @@ export default function InterviewConductPage() {
                       .filter((q: any) => q.skipped)
                       .map((q: any) => (
                         <div key={q.id} className="text-red-400 text-sm">
-                          Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.question?.text?.substring(0, 60)}...
+                          Question {allQuestions.findIndex((x: any) => x.id === q.id) + 1}: {q.text?.substring(0, 60)}...
                         </div>
                       ))}
                   </div>

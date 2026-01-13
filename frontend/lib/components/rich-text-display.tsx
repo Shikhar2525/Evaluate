@@ -13,7 +13,7 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
   }
 
   const sanitized = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img'],
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 's', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'img', 'hr'],
     ALLOWED_ATTR: ['href', 'title', 'alt', 'src'],
   });
 
@@ -25,13 +25,27 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
         }
         
         .rich-text-display p {
-          margin-bottom: 0.75rem;
+          margin-bottom: 0;
+          margin-top: 0;
           color: inherit;
         }
         
-        .rich-text-display strong {
-          font-weight: 700;
+        .rich-text-display ol,
+        .rich-text-display ul {
+          list-style-type: disc !important;
+          margin: 0 !important;
+          padding-left: 1.5rem !important;
           color: inherit;
+        }
+        
+        .rich-text-display ol {
+          list-style-type: decimal !important;
+        }
+        
+        .rich-text-display li {
+          margin-bottom: 0.25rem;
+          color: inherit;
+          display: list-item !important;
         }
         
         .rich-text-display em {
@@ -171,6 +185,10 @@ export default function RichTextDisplay({ content, className = '' }: RichTextDis
           display: block;
           content: '';
           margin: 0;
+        }
+        
+        .rich-text-display hr {
+          display: none;
         }
       `}</style>
       <div

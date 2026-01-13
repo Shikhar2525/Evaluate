@@ -15,6 +15,7 @@ interface AuthStore {
   isLoading: boolean;
   setAuth: (user: User) => void;
   clearAuth: () => void;
+  setLoading: (loading: boolean) => void;
   initializeAuth: () => Promise<void>;
 }
 
@@ -28,6 +29,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   clearAuth: () => {
     localStorage.removeItem('user');
     set({ user: null });
+  },
+  setLoading: (loading) => {
+    set({ isLoading: loading });
   },
   initializeAuth: async () => {
     return new Promise((resolve) => {

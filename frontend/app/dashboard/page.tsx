@@ -1,15 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { useAsyncData } from '@/lib/hooks';
-import { templatesAPI, interviewsAPI } from '@/lib/api';
+import { templatesAPI, interviewsAPI, objectToArray } from '@/lib/api';
 import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 
 export default function DashboardPage() {
+  useLayoutEffect(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+  }, []);
+
   const { user, loading } = useAuth();
   const router = useRouter();
   const { data: templates } = useAsyncData<any[]>(
@@ -183,8 +192,8 @@ export default function DashboardPage() {
                       </div>
                     )}
                     <div className="flex items-center space-x-4 text-xs text-[#79C9C5]">
-                      <span>📋 {template.sections?.length || 0} sections</span>
-                      <span>❓ {template.sections?.reduce((sum: number, s: any) => sum + (s.questions?.length || 0), 0) || 0} questions</span>
+                      <span>📋 {objectToArray(template.sections)?.length || 0} sections</span>
+                      <span>❓ {objectToArray(template.sections)?.reduce((sum: number, s: any) => sum + (objectToArray(s.questions)?.length || 0), 0) || 0} questions</span>
                     </div>
                   </Link>
                 ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { useAsyncData } from '@/lib/hooks';
@@ -9,6 +9,15 @@ import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 
 export default function InterviewsPage() {
+  useLayoutEffect(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+  }, []);
+
   const { user } = useAuth();
   const router = useRouter();
   const [filterStatus, setFilterStatus] = useState('all');
@@ -176,7 +185,7 @@ export default function InterviewsPage() {
                         </div>
                       </div>
                       <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors">
-                        {interview.template.name}
+                        {interview.template?.name || 'Unnamed Template'}
                       </h3>
                     </div>
                   </div>

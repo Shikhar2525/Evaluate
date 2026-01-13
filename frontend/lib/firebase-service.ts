@@ -226,12 +226,25 @@ export const firebaseTemplatesService = {
       createdAt: Date.now(),
     };
 
-    await set(
-      ref(database, `templates/${templateId}/sections/${sectionId}/questions/${questionId}`),
-      questionData,
-    );
+    // Get the section first
+    const templateSnap = await get(ref(database, `templates/${templateId}`));
+    const templateData = templateSnap.val();
+    const sections = { ...templateData.sections };
+    const section = sections[sectionId];
 
-    await update(ref(database, `templates/${templateId}`), { updatedAt: Date.now() });
+    if (!section) {
+      throw new Error('Section not found');
+    }
+
+    // Update the section with the new question
+    section.questions = section.questions || {};
+    section.questions[questionId] = questionData;
+
+    // Update the entire template with the modified sections
+    await update(ref(database, `templates/${templateId}`), {
+      sections,
+      updatedAt: Date.now(),
+    });
 
     return questionData;
   },
@@ -297,6 +310,7 @@ export const firebaseInterviewsService = {
       sections: {},
       feedback: {},
       overallNotes: '',
+      sectionOrder: data.sectionOrder || [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
@@ -331,14 +345,39 @@ export const firebaseInterviewsService = {
     const interviews = await get(ref(database, 'interviews'));
     const allInterviews = interviews.val() || {};
 
-    return Object.values(allInterviews)
+    const userInterviews = Object.values(allInterviews)
       .filter((i: any) => i.userId === userId)
       .sort((a: any, b: any) => b.createdAt - a.createdAt);
+
+    // Fetch template names for each interview
+    const interviewsWithTemplates = await Promise.all(
+      userInterviews.map(async (interview: any) => {
+        const template = await get(ref(database, `templates/${interview.templateId}`));
+        const templateData = template.val();
+        return {
+          ...interview,
+          template: templateData ? { name: templateData.name } : null,
+        };
+      })
+    );
+
+    return interviewsWithTemplates;
   },
 
   async get(interviewId: string) {
     const interview = await get(ref(database, `interviews/${interviewId}`));
-    return interview.val();
+    const interviewData = interview.val();
+    
+    if (!interviewData) return null;
+    
+    // Fetch template data
+    const template = await get(ref(database, `templates/${interviewData.templateId}`));
+    const templateData = template.val();
+    
+    return {
+      ...interviewData,
+      template: templateData ? { name: templateData.name, sections: templateData.sections } : null,
+    };
   },
 
   async updateStatus(interviewId: string, status: string) {

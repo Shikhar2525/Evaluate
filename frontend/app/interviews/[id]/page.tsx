@@ -1,13 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
-import { interviewsAPI } from '@/lib/api';
+import { interviewsAPI, objectToArray } from '@/lib/api';
 import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 
 export default function InterviewDetailPage() {
+  useLayoutEffect(() => {
+    // Use setTimeout to ensure DOM is fully rendered
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 0);
+  }, []);
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -65,7 +73,25 @@ export default function InterviewDetailPage() {
     return <div className="text-center py-12">Interview not found</div>;
   }
 
-  const sortedQuestions = interview.questions ? [...interview.questions].sort((a: any, b: any) => (a.order || 0) - (b.order || 0)) : [];
+  // Extract questions from sections
+  const allQuestionsFromSections = (() => {
+    const questions: any[] = [];
+    if (interview?.sections) {
+      Object.values(interview.sections).forEach((section: any) => {
+        if (section.questions) {
+          Object.values(section.questions).forEach((question: any) => {
+            questions.push({
+              ...question,
+              sectionId: section.id,
+            });
+          });
+        }
+      });
+    }
+    return questions;
+  })();
+
+  const sortedQuestions = allQuestionsFromSections.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
   
   const completedQuestions = sortedQuestions?.filter((q: any) => !q.skipped) || [];
   const skippedQuestions = sortedQuestions?.filter((q: any) => q.skipped) || [];
@@ -200,13 +226,13 @@ export default function InterviewDetailPage() {
                             {sortedQuestions.indexOf(iq) + 1}
                           </span>
                           <h3 className="text-base font-semibold text-white group-hover:text-[#79C9C5] transition-colors line-clamp-2">
-                            {iq.question?.text}
+                            {iq.text}
                           </h3>
                         </div>
                         <div className="flex items-center gap-2 ml-11">
-                          {iq.question?.difficulty && (
+                          {iq.difficulty && (
                             <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-[#F96E5B]/20 text-[#F96E5B] border border-[#F96E5B]/30">
-                              {iq.question.difficulty.toUpperCase()}
+                              {iq.difficulty.toUpperCase()}
                             </span>
                           )}
                           {iq.skipped && (
@@ -233,12 +259,12 @@ export default function InterviewDetailPage() {
                   {isExpanded && (
                     <div className="bg-slate-800/40 border-x border-b border-[#3F9AAE]/20 rounded-b-lg p-6 space-y-6 animate-in fade-in duration-200">
                       {/* Code Snippet */}
-                      {iq.question?.codeSnippet && (
+                      {iq.codeSnippet && (
                         <div>
                           <p className="text-xs font-bold text-[#79C9C5]/70 tracking-wider mb-3">CODE SNIPPET</p>
                           <div className="bg-slate-950 rounded-lg border border-[#3F9AAE]/20 p-4 overflow-x-auto">
                             <pre className="text-xs font-mono text-slate-300 leading-relaxed whitespace-pre-wrap break-words">
-                              {iq.question.codeSnippet}
+                              {iq.codeSnippet}
                             </pre>
                           </div>
                         </div>
