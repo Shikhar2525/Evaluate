@@ -48,7 +48,7 @@ export default function TemplateDetailPage() {
       return;
     }
 
-    if (!user) return;
+    if (!user || !templateId) return;
 
     const fetchTemplate = async () => {
       try {

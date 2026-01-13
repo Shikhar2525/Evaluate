@@ -29,6 +29,7 @@ export const useAuth = () => {
               email: currentUser.email || '',
               firstName: currentUser.firstName || '',
               lastName: currentUser.lastName || '',
+              photoURL: currentUser.photoURL,
             });
           }
         } else {
@@ -54,6 +55,7 @@ export const useAuth = () => {
         email: user.data.user.email || '',
         firstName: user.data.user.firstName || '',
         lastName: user.data.user.lastName || '',
+        photoURL: user.data.user.photoURL,
       });
       setLoading(false);
       return user.data;
@@ -69,6 +71,7 @@ export const useAuth = () => {
         email: user.data.user.email || '',
         firstName: user.data.user.firstName || '',
         lastName: user.data.user.lastName || '',
+        photoURL: user.data.user.photoURL,
       });
       setLoading(false);
       return user.data;
@@ -76,12 +79,25 @@ export const useAuth = () => {
     [setAuth, setLoading],
   );
 
+  const signInWithGoogle = useCallback(async () => {
+    const user = await firebaseAuthService.signInWithGoogle();
+    setAuth({
+      id: user.uid,
+      email: user.email || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      photoURL: user.photoURL,
+    });
+    setLoading(false);
+    return user;
+  }, [setAuth, setLoading]);
+
   const logout = useCallback(async () => {
     await firebaseAuthService.signOut();
     clearAuth();
   }, [clearAuth]);
 
-  return { user, loading: isLoading, signUp, signIn, logout };
+  return { user, loading: isLoading, signUp, signIn, signInWithGoogle, logout };
 };
 
 export const useAsyncData = <T,>(
@@ -91,6 +107,42 @@ export const useAsyncData = <T,>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchFn();
+        if (isMounted) {
+          setData(response.data);
+          setError(null);
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(err.message || 'An error occurred');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Only fetch if all dependencies are truthy (not null/undefined)
+    const shouldFetch = dependencies.length === 0 || dependencies.every(dep => dep);
+    
+    if (shouldFetch) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, dependencies);
 
   const refetch = useCallback(async () => {
     try {
@@ -104,10 +156,6 @@ export const useAsyncData = <T,>(
       setLoading(false);
     }
   }, [fetchFn]);
-
-  useEffect(() => {
-    refetch();
-  }, dependencies);
 
   return { data, loading, error, refetch };
 };

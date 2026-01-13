@@ -199,58 +199,117 @@ function NewInterviewContent() {
             {templates.map((t: any) => {
               const sectionsCount = objectToArray(t.sections)?.length || 0;
               const questionsCount = objectToArray(t.sections)?.reduce((sum: number, s: any) => sum + (objectToArray(s.questions)?.length || 0), 0) || 0;
-              return (
-              <Link
-                key={t.id}
-                href={`/interviews/new?templateId=${t.id}`}
-                className="group bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/30 transition-all duration-300 border border-[#3F9AAE]/25 overflow-hidden animate-slide-in backdrop-blur-sm hover:-translate-y-1"
-              >
-                {/* Card Header with Gradient Background */}
-                <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-transparent p-6 border-b border-[#3F9AAE]/20">
-                  <div className="flex items-start gap-3">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] group-hover:from-[#3F9AAE]/40 group-hover:to-[#79C9C5]/30 transition-colors">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-white group-hover:text-[#FFE2AF] transition-colors">{t.name}</h3>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Content */}
-                <div className="p-6">
-                  {/* Description */}
-                  {t.description && (
-                    <div className="text-[#79C9C5] text-sm mb-5 line-clamp-3 opacity-90">
-                      <RichTextDisplay content={t.description} className="text-[#79C9C5]" />
-                    </div>
-                  )}
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-3 p-4 bg-[#3F9AAE]/10 rounded-lg border border-[#3F9AAE]/20 mb-5">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-[#79C9C5]">{sectionsCount}</p>
-                      <p className="text-xs font-semibold text-[#79C9C5]/60 uppercase tracking-wide mt-1">Sections</p>
-                    </div>
-                    <div className="text-center border-l border-r border-[#3F9AAE]/20">
-                      <p className="text-2xl font-bold text-[#79C9C5]">{questionsCount}</p>
-                      <p className="text-xs font-semibold text-[#79C9C5]/60 uppercase tracking-wide mt-1">Questions</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-[#FFE2AF]">~{Math.round(questionsCount * 3)}</p>
-                      <p className="text-xs font-semibold text-[#FFE2AF]/60 uppercase tracking-wide mt-1">Minutes</p>
+              const isValid = sectionsCount > 0 && questionsCount > 0;
+              const hasEmptySections = sectionsCount > 0 && questionsCount === 0;
+              
+              const cardContent = (
+                <>
+                  {/* Card Header with Gradient Background */}
+                  <div className="bg-gradient-to-r from-[#3F9AAE]/10 via-[#79C9C5]/5 to-transparent p-6 border-b border-[#3F9AAE]/20">
+                    <div className="flex items-start gap-3">
+                      <div className="p-3 rounded-lg bg-gradient-to-br from-[#3F9AAE]/30 to-[#79C9C5]/20 text-[#79C9C5] group-hover:from-[#3F9AAE]/40 group-hover:to-[#79C9C5]/30 transition-colors">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-white group-hover:text-[#FFE2AF] transition-colors">{t.name}</h3>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Action Button */}
-                  <button className="w-full px-4 py-3 bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/40 transition-all uppercase tracking-wide text-sm group-hover:scale-105 duration-200">
-                    Select Template
-                  </button>
-                </div>
-              </Link>
+                  {/* Card Content */}
+                  <div className="p-6">
+                    {/* Description */}
+                    {t.description && (
+                      <div className="text-[#79C9C5] text-sm mb-5 line-clamp-3 opacity-90">
+                        <RichTextDisplay content={t.description} className="text-[#79C9C5]" />
+                      </div>
+                    )}
+
+                    {/* Warning for templates without sections */}
+                    {sectionsCount === 0 && (
+                      <div className="p-3 rounded-lg bg-red-500/15 border border-red-500/30 mb-5">
+                        <p className="text-xs font-semibold text-red-400 flex items-center gap-2">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                          </svg>
+                          No sections added
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Warning for templates with sections but no questions */}
+                    {hasEmptySections && (
+                      <div className="p-3 rounded-lg bg-yellow-500/15 border border-yellow-500/30 mb-5">
+                        <p className="text-xs font-semibold text-yellow-400 flex items-center gap-2">
+                          <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
+                          </svg>
+                          Sections have no questions
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Stats */}
+                    <div className={`grid grid-cols-3 gap-3 p-4 rounded-lg border mb-5 ${
+                      isValid 
+                        ? 'bg-[#3F9AAE]/10 border-[#3F9AAE]/20'
+                        : 'bg-slate-700/30 border-slate-600/30'
+                    }`}>
+                      <div className="text-center">
+                        <p className={`text-2xl font-bold ${isValid ? 'text-[#79C9C5]' : 'text-slate-500'}`}>{sectionsCount}</p>
+                        <p className={`text-xs font-semibold uppercase tracking-wide mt-1 ${isValid ? 'text-[#79C9C5]/60' : 'text-slate-500/60'}`}>Sections</p>
+                      </div>
+                      <div className={`text-center border-l border-r ${isValid ? 'border-[#3F9AAE]/20' : 'border-slate-600/20'}`}>
+                        <p className={`text-2xl font-bold ${isValid ? 'text-[#79C9C5]' : 'text-slate-500'}`}>{questionsCount}</p>
+                        <p className={`text-xs font-semibold uppercase tracking-wide mt-1 ${isValid ? 'text-[#79C9C5]/60' : 'text-slate-500/60'}`}>Questions</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-2xl font-bold ${isValid ? 'text-[#FFE2AF]' : 'text-slate-500'}`}>~{Math.round(questionsCount * 3)}</p>
+                        <p className={`text-xs font-semibold uppercase tracking-wide mt-1 ${isValid ? 'text-[#FFE2AF]/60' : 'text-slate-500/60'}`}>Minutes</p>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <button 
+                      disabled={!isValid}
+                      className={`w-full px-4 py-3 font-bold rounded-lg transition-all uppercase tracking-wide text-sm ${
+                        isValid
+                          ? 'bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white hover:shadow-lg hover:shadow-[#3F9AAE]/40 group-hover:scale-105 duration-200'
+                          : 'bg-slate-700 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      {sectionsCount === 0 
+                        ? 'No Sections' 
+                        : questionsCount === 0 
+                        ? 'No Questions'
+                        : 'Select Template'}
+                    </button>
+                  </div>
+                </>
               );
+
+              if (isValid) {
+                return (
+                  <Link
+                    key={t.id}
+                    href={`/interviews/new?templateId=${t.id}`}
+                    className="group bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl shadow-lg hover:shadow-2xl hover:shadow-[#3F9AAE]/30 transition-all duration-300 border border-[#3F9AAE]/25 overflow-hidden animate-slide-in backdrop-blur-sm hover:-translate-y-1"
+                  >
+                    {cardContent}
+                  </Link>
+                );
+              } else {
+                return (
+                  <div
+                    key={t.id}
+                    className="group bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 rounded-2xl shadow-lg transition-all duration-300 border border-slate-700 overflow-hidden animate-slide-in backdrop-blur-sm opacity-75"
+                  >
+                    {cardContent}
+                  </div>
+                );
+              }
             })}
           </div>
         </main>
@@ -276,6 +335,11 @@ function NewInterviewContent() {
       (sum: number, section: any) => sum + (objectToArray(section.questions)?.length || 0),
       0,
     ) || 0;
+    
+    const templatesArray = objectToArray(template.sections) || [];
+    const emptySections = templatesArray.filter((s: any) => !objectToArray(s.questions)?.length);
+    const hasEmptySections = emptySections.length > 0;
+    const isValidTemplate = templatesArray.length > 0 && totalQuestions > 0;
 
     return (
       <div className="min-h-screen bg-slate-950">
@@ -338,6 +402,51 @@ function NewInterviewContent() {
             
             {/* Form Content */}
             <div className="p-8">
+            
+            {/* Warning: No sections or no questions */}
+            {!isValidTemplate && (
+              <div className="p-4 rounded-lg bg-red-500/15 border border-red-500/30 mb-6">
+                <p className="text-sm font-semibold text-red-400 flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                  </svg>
+                  Cannot start interview with this template
+                </p>
+                <p className="text-xs text-red-300 mb-4">
+                  {templatesArray.length === 0 
+                    ? 'This template has no sections. Please add sections and questions before starting an interview.'
+                    : 'This template has sections but no questions. Please add questions to the sections before starting an interview.'}
+                </p>
+                <Link
+                  href={`/templates/${templateId}`}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 rounded-lg text-sm font-medium text-red-400 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-7.5-2L9.5 7.5M11 5l3.5 3.5" />
+                  </svg>
+                  <span>Edit Template</span>
+                </Link>
+              </div>
+            )}
+            
+            {/* Warning: Sections with no questions */}
+            {hasEmptySections && isValidTemplate && (
+              <div className="p-4 rounded-lg bg-yellow-500/15 border border-yellow-500/30 mb-6">
+                <p className="text-sm font-semibold text-yellow-400 flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
+                  </svg>
+                  {emptySections.length} section{emptySections.length !== 1 ? 's' : ''} will be skipped
+                </p>
+                <p className="text-xs text-yellow-300">
+                  The following section{emptySections.length !== 1 ? 's' : ''} have no questions and won't appear in the interview:
+                  {emptySections.map((section: any) => (
+                    <span key={section.id} className="block text-yellow-300/80 ml-2 mt-1">• {section.title}</span>
+                  ))}
+                </p>
+              </div>
+            )}
+
             {/* Form */}
             <form onSubmit={handleStartInterview} className="space-y-6">
               {/* Candidate Name */}
@@ -403,13 +512,20 @@ function NewInterviewContent() {
               <div className="pt-6">
                 <button
                   type="submit"
-                  disabled={creating}
+                  disabled={creating || !isValidTemplate}
                   className="w-full px-6 py-4 bg-gradient-to-r from-[#3F9AAE] via-[#3F9AAE] to-[#79C9C5] text-white font-bold rounded-lg hover:shadow-lg hover:shadow-[#3F9AAE]/40 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-2 uppercase tracking-wide text-sm"
                 >
                   {creating ? (
                     <>
                       <span className="inline-block w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin"></span>
                       <span>Starting Interview...</span>
+                    </>
+                  ) : !isValidTemplate ? (
+                    <>
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                      </svg>
+                      <span>Template Incomplete</span>
                     </>
                   ) : (
                     <>

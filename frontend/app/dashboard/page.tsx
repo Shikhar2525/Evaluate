@@ -24,11 +24,11 @@ export default function DashboardPage() {
   const router = useRouter();
   const { data: templates } = useAsyncData<any[]>(
     () => templatesAPI.list(),
-    [user],
+    [user?.id],
   );
   const { data: interviews } = useAsyncData<any[]>(
     () => interviewsAPI.list(),
-    [user],
+    [user?.id],
   );
 
   useEffect(() => {
@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const recentTemplates = templates?.slice(0, 3) || [];
   const recentInterviews = interviews?.slice(0, 3) || [];
 
-  const isLoading = !templates || !interviews;
+  const isLoading = false;
 
   const stats = [
     {
@@ -140,7 +140,7 @@ export default function DashboardPage() {
           <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Link
-              href="/templates/create"
+              href="/templates"
               className="bg-slate-800 rounded-xl p-8 border border-[#3F9AAE]/30 hover:border-[#3F9AAE] hover:shadow-lg hover:shadow-[#3F9AAE]/20 transition-all group"
             >
               <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-[#3F9AAE]/20 text-[#79C9C5] group-hover:bg-[#3F9AAE]/30 mb-4">

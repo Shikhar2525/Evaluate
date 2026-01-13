@@ -4,6 +4,8 @@ import {
   signOut,
   User,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from 'firebase/auth';
 import {
   ref,
@@ -24,35 +26,53 @@ export interface AuthUser {
   email: string | null;
   firstName?: string;
   lastName?: string;
+  photoURL?: string | null;
 }
 
 export interface UserData {
   email: string;
   firstName: string;
   lastName: string;
+  photoURL?: string;
   createdAt: number;
 }
+
+// Email validation function
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
 // Auth Service
 export const firebaseAuthService = {
   async signUp(email: string, password: string, firstName: string, lastName: string) {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const userId = userCredential.user.uid;
+    // Validate email format
+    if (!isValidEmail(email)) {
+      throw new Error('Invalid email format');
+    }
 
-    // Save user data to database
-    await set(ref(database, `users/${userId}`), {
-      email,
-      firstName,
-      lastName,
-      createdAt: Date.now(),
-    });
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
 
-    return {
-      uid: userId,
-      email,
-      firstName,
-      lastName,
-    };
+      // Save user data to database
+      await set(ref(database, `users/${userId}`), {
+        email,
+        firstName,
+        lastName,
+        createdAt: Date.now(),
+      });
+
+      return {
+        uid: userId,
+        email,
+        firstName,
+        lastName,
+      };
+    } catch (error: any) {
+      // Re-throw Firebase errors with their codes intact
+      throw error;
+    }
   },
 
   async signIn(email: string, password: string) {
@@ -66,6 +86,45 @@ export const firebaseAuthService = {
       email: userCredential.user.email,
       firstName: data?.firstName,
       lastName: data?.lastName,
+      photoURL: data?.photoURL || userCredential.user.photoURL,
+    };
+  },
+
+  async signInWithGoogle() {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const userId = userCredential.user.uid;
+    const userData = await get(ref(database, `users/${userId}`));
+    const data = userData.val();
+
+    // If first time Google login, save user data
+    if (!data) {
+      const displayName = userCredential.user.displayName || '';
+      const [firstName = '', lastName = ''] = displayName.split(' ');
+      
+      await set(ref(database, `users/${userId}`), {
+        email: userCredential.user.email,
+        firstName,
+        lastName,
+        photoURL: userCredential.user.photoURL,
+        createdAt: Date.now(),
+      });
+
+      return {
+        uid: userId,
+        email: userCredential.user.email,
+        firstName,
+        lastName,
+        photoURL: userCredential.user.photoURL,
+      };
+    }
+
+    return {
+      uid: userId,
+      email: userCredential.user.email,
+      firstName: data?.firstName,
+      lastName: data?.lastName,
+      photoURL: data?.photoURL || userCredential.user.photoURL,
     };
   },
 
@@ -84,6 +143,7 @@ export const firebaseAuthService = {
             email: user.email,
             firstName: data?.firstName,
             lastName: data?.lastName,
+            photoURL: data?.photoURL || user.photoURL,
           });
         } else {
           resolve(null);
@@ -103,6 +163,7 @@ export const firebaseAuthService = {
           email: user.email,
           firstName: data?.firstName,
           lastName: data?.lastName,
+          photoURL: data?.photoURL || user.photoURL,
         });
       } else {
         callback(null);
@@ -305,6 +366,7 @@ export const firebaseInterviewsService = {
       id: interviewId,
       userId,
       templateId: data.templateId,
+      templateName: templateData?.name || 'Unnamed Template',
       candidateName: data.candidateName || 'Candidate',
       status: 'in_progress',
       sections: {},

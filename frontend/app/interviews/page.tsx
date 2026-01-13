@@ -183,7 +183,7 @@ export default function InterviewsPage() {
                         </div>
                       </div>
                       <h3 className="text-lg font-bold text-white group-hover:text-[#FFE2AF] transition-colors">
-                        {interview.template?.name || 'Unnamed Template'}
+                        {interview.template?.name || interview.templateName || 'Unnamed Template'}
                       </h3>
                     </div>
                   </div>
@@ -370,9 +370,16 @@ export default function InterviewsPage() {
                 <p className="text-[#79C9C5] text-center mb-4 text-sm">
                   Are you sure you want to delete the interview for <span className="font-semibold text-white">{interviewToDelete?.candidateName}</span>? This action cannot be undone.
                 </p>
-                <p className="text-slate-400 text-center text-xs mb-6">
-                  Template: {interviewToDelete?.template.name}
-                </p>
+                {interviewToDelete?.template && (
+                  <p className="text-slate-400 text-center text-xs mb-6">
+                    Template: {interviewToDelete.template.name}
+                  </p>
+                )}
+                {!interviewToDelete?.template && interviewToDelete?.templateName && (
+                  <p className="text-slate-400 text-center text-xs mb-6">
+                    Template: {interviewToDelete.templateName}
+                  </p>
+                )}
               </>
             );
           })()}

@@ -49,7 +49,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/templates" className="flex items-center space-x-2 group">
+          <Link href="/dashboard" className="flex items-center space-x-2 group">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] flex items-center justify-center text-white group-hover:shadow-lg group-hover:shadow-[#3F9AAE]/50 transition-shadow">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -85,32 +85,60 @@ export default function Navbar() {
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center space-x-2 p-2 hover:bg-[#3F9AAE]/20 rounded-lg transition-all"
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] text-white font-semibold">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-                </div>
+                {user?.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt={`${user?.firstName} ${user?.lastName}`}
+                    referrerPolicy="no-referrer"
+                    className="w-10 h-10 rounded-full object-cover border border-[#3F9AAE]/50"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-[#3F9AAE] to-[#F96E5B] text-white font-semibold text-sm">
+                    {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                  </div>
+                )}
                 <div className="hidden sm:block text-right">
                   <p className="text-sm font-medium text-white">{user?.firstName} {user?.lastName}</p>
                 </div>
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-lg shadow-2xl border border-[#3F9AAE]/30 py-2 z-20 backdrop-blur-xl">
-                  <div className="px-4 py-3 border-b border-[#3F9AAE]/30">
-                    <p className="text-sm font-semibold text-white">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-xs text-[#79C9C5] truncate">{user?.email}</p>
+                <div className="absolute right-0 mt-3 w-72 bg-slate-900/95 rounded-2xl shadow-2xl border border-slate-700/50 py-0 z-20 backdrop-blur-xl overflow-hidden">
+                  {/* Profile Header */}
+                  <div className="bg-gradient-to-r from-blue-600/20 to-cyan-600/20 px-6 py-6 flex items-center gap-4 border-b border-slate-700/50">
+                    {user?.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={`${user?.firstName} ${user?.lastName}`}
+                        referrerPolicy="no-referrer"
+                        className="w-14 h-14 rounded-full object-cover border-2 border-blue-500/50 shadow-lg"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg">
+                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{user?.firstName} {user?.lastName}</p>
+                      <p className="text-xs text-slate-400 truncate mt-1">{user?.email}</p>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-[#FFE2AF] hover:bg-[#F96E5B]/20 transition-all flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
+                  
+                  {/* Action Button */}
+                  <div className="px-4 py-3">
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setShowProfileMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-xl transition-all duration-200 group"
+                    >
+                      <svg className="w-5 h-5 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      <span>Sign out</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
