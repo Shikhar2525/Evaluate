@@ -80,6 +80,13 @@ export default function InterviewDetailPage() {
         router.push('/');
         return;
       }
+      
+      // Check if interview is completed
+      if ((response.data as any).status !== 'completed') {
+        router.push('/');
+        return;
+      }
+      
       setInterview(response.data as any);
       
       if ((response.data as any).aiSummary) {
@@ -97,6 +104,13 @@ export default function InterviewDetailPage() {
     try {
       const response = await interviewsAPI.get(interviewId);
       if (!response.data) throw new Error('No data');
+      
+      // Check if interview is completed
+      if (response.data.status !== 'completed') {
+        router.push('/interviews');
+        return;
+      }
+      
       setInterview(response.data);
       
       // Check if summary already exists
