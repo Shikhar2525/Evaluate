@@ -224,8 +224,8 @@ Generate a detailed analysis with the following structure (return as JSON):
   "sections": [
     {
       "name": "Section Name",
-      "strengths": ["2-3 sentences explaining a strength with reference to specific high-rated questions", "another strength with context"],
-      "gaps": ["2-3 sentences explaining a gap with reference to specific low-rated or skipped questions", "another gap with context"],
+      "strengths": ["2-3 sentences explaining a strength demonstrated in the section with reference to specific topics", "another strength with context"],
+      "gaps": ["2-3 sentences explaining a gap or area for improvement with reference to specific topics that need work", "another gap with context"],
       "summary": "2-3 sentences summarizing overall section performance with specific observations"
     }
   ],
@@ -243,11 +243,12 @@ Generate a detailed analysis with the following structure (return as JSON):
 }
 
 IMPORTANT INSTRUCTIONS:
-1. Analyze each question text and its corresponding rating to understand specific strengths/gaps
-2. A high rating (4-5) on a question indicates the candidate is strong in that area - reference the question topic
-3. A low rating (1-2) or skipped question indicates a gap - reference what the question was testing
-4. Make strengths and gaps ELABORATIVE but concise - 2-3 sentences each that explain WHY based on the questions
-5. Include specific question topics in strengths/gaps descriptions (e.g., "Demonstrated strong understanding of React hooks (rated 5/5 on question about component state management)")
+1. Analyze each question text and its corresponding rating to understand specific strengths/gaps - BUT DO NOT mention the ratings in your response
+2. A high rating (4-5) on a question indicates the candidate is strong in that area - reference the question topic without mentioning the rating
+3. A low rating (1-2) or skipped question indicates a gap - reference what the question was testing without mentioning the rating
+4. Make strengths and gaps ELABORATIVE but concise - 2-3 sentences each that explain the demonstrated skills/knowledge
+5. Include specific question topics in strengths/gaps descriptions WITHOUT rating numbers (e.g., "Demonstrated strong understanding of React hooks and component state management" NOT "Demonstrated strong understanding of React hooks (rated 5/5 on...)")
+6. Consider difficulty levels - high ratings on hard questions are stronger strengths - reflect this in language like "Advanced understanding of..." for difficult topics
 6. Consider difficulty levels - high ratings on hard questions are stronger strengths
 7. Provide context for recommendations - how they address the identified gaps
 8. Calculate confidence score (0-100) based on:
