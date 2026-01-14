@@ -12,8 +12,8 @@ import RichTextDisplay from '@/lib/components/rich-text-display';
 import Loader from '@/lib/components/loader';
 
 export default function DashboardPage() {
+
   useLayoutEffect(() => {
-    // Use setTimeout to ensure DOM is fully rendered
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'auto' });
       document.documentElement.scrollTop = 0;
