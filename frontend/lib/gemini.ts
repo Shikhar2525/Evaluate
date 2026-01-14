@@ -226,7 +226,12 @@ Generate a detailed analysis with the following structure (return as JSON):
       "name": "Section Name",
       "strengths": ["2-3 sentences explaining a strength demonstrated in the section with reference to specific topics", "another strength with context"],
       "gaps": ["2-3 sentences explaining a gap or area for improvement with reference to specific topics that need work", "another gap with context"],
-      "summary": "2-3 sentences summarizing overall section performance with specific observations"
+      "summary": "2-3 sentences summarizing overall section performance with specific observations",
+      "topics": [
+        {"name": "useCallback", "understood": true},
+        {"name": "var vs const", "understood": false},
+        {"name": "React hooks", "understood": true}
+      ]
     }
   ],
   "overallSummary": "Comprehensive 3-4 sentence assessment of the candidate's performance across all sections, highlighting key patterns, strengths, areas for improvement, and overall readiness",
@@ -248,16 +253,22 @@ IMPORTANT INSTRUCTIONS:
 3. A low rating (1-2) or skipped question indicates a gap - reference what the question was testing without mentioning the rating
 4. Make strengths and gaps ELABORATIVE but concise - 2-3 sentences each that explain the demonstrated skills/knowledge
 5. Include specific question topics in strengths/gaps descriptions WITHOUT rating numbers (e.g., "Demonstrated strong understanding of React hooks and component state management" NOT "Demonstrated strong understanding of React hooks (rated 5/5 on...)")
-6. Consider difficulty levels - high ratings on hard questions are stronger strengths - reflect this in language like "Advanced understanding of..." for difficult topics
-6. Consider difficulty levels - high ratings on hard questions are stronger strengths
-7. Provide context for recommendations - how they address the identified gaps
-8. Calculate confidence score (0-100) based on:
+6. For the "topics" array in each section:
+   - READ EACH QUESTION TEXT CAREFULLY to identify the technical concepts/topics being tested
+   - Extract ALL relevant topics from each question - the more topics the better (aim for 5-10+ topics per section if applicable)
+   - For each topic, determine if it was "understood" based on the question's rating: understood=true if rating >= 3, understood=false if rating < 3 or skipped
+   - Topic names should be concise and specific (1-4 words) like "useCallback hook", "async/await", "var vs const vs let", "closures", "event delegation", "REST API design", etc.
+   - If a question tests multiple topics (e.g., "Explain useCallback and useMemo differences"), create separate topic entries for each concept
+   - Include both high-level concepts and specific technical details as separate topics when present in questions
+7. Consider difficulty levels - high ratings on hard questions are stronger strengths - reflect this in language like "Advanced understanding of..." for difficult topics
+8. Provide context for recommendations - how they address the identified gaps
+9. Calculate confidence score (0-100) based on:
    - Average rating across all questions (heavily weighted)
    - Percentage of questions answered vs skipped
    - Consistency of performance across sections
    - Difficulty of questions answered well
-9. Set hiring_likelihood to one of: "Very Likely to be hired", "Likely to be hired", "Moderate Fit", "Below Average", "Not a Good Fit"
-10. Hiring level guidelines:
+10. Set hiring_likelihood to one of: "Very Likely to be hired", "Likely to be hired", "Moderate Fit", "Below Average", "Not a Good Fit"
+11. Hiring level guidelines:
     - 80-100: "Very Strong Candidate" / "Very Likely to be hired"
     - 65-79: "Strong Candidate" / "Likely to be hired"
     - 50-64: "Moderate Candidate" / "Moderate Fit"

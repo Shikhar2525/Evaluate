@@ -362,12 +362,20 @@ export const firebaseInterviewsService = {
     const template = await get(ref(database, `templates/${data.templateId}`));
     const templateData = template.val();
 
+    // Get interviewer info
+    const userSnapshot = await get(ref(database, `users/${userId}`));
+    const userData = userSnapshot.val();
+    const interviewerName = userData?.firstName && userData?.lastName 
+      ? `${userData.firstName} ${userData.lastName}`
+      : userData?.email || 'Unknown';
+
     const interviewData: any = {
       id: interviewId,
       userId,
       templateId: data.templateId,
       templateName: templateData?.name || 'Unnamed Template',
       candidateName: data.candidateName || 'Candidate',
+      interviewer: interviewerName,
       status: 'in_progress',
       sections: {},
       feedback: {},
@@ -461,6 +469,37 @@ export const firebaseInterviewsService = {
       aiSummary,
       updatedAt: Date.now(),
     });
+  },
+
+  async makePublic(interviewId: string) {
+    const publicAccessCode = `pub_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    await update(ref(database, `interviews/${interviewId}`), {
+      isPublic: true,
+      publicAccessCode,
+      updatedAt: Date.now(),
+    });
+    return publicAccessCode;
+  },
+
+  async makePrivate(interviewId: string) {
+    await update(ref(database, `interviews/${interviewId}`), {
+      isPublic: false,
+      publicAccessCode: null,
+      updatedAt: Date.now(),
+    });
+  },
+
+  async getByPublicCode(publicAccessCode: string) {
+    const interviews = await get(ref(database, 'interviews'));
+    const allInterviews = interviews.val() || {};
+    
+    for (const interview of Object.values(allInterviews)) {
+      if ((interview as any).publicAccessCode === publicAccessCode && (interview as any).isPublic) {
+        return interview;
+      }
+    }
+    
+    return null;
   },
 
   async delete(interviewId: string) {

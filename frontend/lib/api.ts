@@ -252,4 +252,21 @@ export const interviewsAPI = {
     const interview = await firebaseInterviewsService.get(id);
     return { data: interview };
   },
+
+  makePublic: async (id: string) => {
+    const publicAccessCode = await firebaseInterviewsService.makePublic(id);
+    const interview = await firebaseInterviewsService.get(id);
+    return { data: { interview, publicAccessCode } };
+  },
+
+  makePrivate: async (id: string) => {
+    await firebaseInterviewsService.makePrivate(id);
+    const interview = await firebaseInterviewsService.get(id);
+    return { data: interview };
+  },
+
+  getPublicInterview: async (publicAccessCode: string) => {
+    const interview = await firebaseInterviewsService.getByPublicCode(publicAccessCode);
+    return { data: interview };
+  },
 };

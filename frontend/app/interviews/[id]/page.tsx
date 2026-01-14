@@ -47,6 +47,10 @@ export default function InterviewDetailPage() {
   const [aiSummary, setAiSummary] = useState<any>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [publicShareLoading, setPublicShareLoading] = useState(false);
+  const [publicAccessCode, setPublicAccessCode] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isPublicView, setIsPublicView] = useState(false);
 
   useLayoutEffect(() => {
     const timer = setTimeout(() => {
@@ -56,31 +60,59 @@ export default function InterviewDetailPage() {
   }, []);
 
   useEffect(() => {
-    if (!user || !interviewId) return;
+    // Check if this is a public access code (starts with "pub_")
+    const isPublicCode = interviewId.startsWith('pub_');
+    setIsPublicView(isPublicCode);
 
-    const fetchInterview = async () => {
-      try {
-        const response = await interviewsAPI.get(interviewId);
-        if (!response.data) throw new Error('No data');
-        setInterview(response.data);
-        
-        // Check if summary already exists
-        if (response.data.aiSummary) {
-          setAiSummary(response.data.aiSummary);
-          setSummaryLoading(false);
-        } else {
-          // Generate summary only if it doesn't exist
-          generateSummary(response.data);
-        }
-        setLoading(false);
-      } catch (err) {
-        console.error("Fetch error:", err);
-        router.push('/interviews');
-      }
-    };
-
-    fetchInterview();
+    // For public codes, we don't need authentication
+    if (isPublicCode) {
+      fetchPublicInterview();
+    } else if (user) {
+      fetchInterview();
+    }
   }, [user, interviewId, router]);
+
+  const fetchPublicInterview = async () => {
+    try {
+      setLoading(true);
+      const response = await interviewsAPI.getPublicInterview(interviewId);
+      if (!response.data) {
+        router.push('/');
+        return;
+      }
+      setInterview(response.data as any);
+      
+      if ((response.data as any).aiSummary) {
+        setAiSummary((response.data as any).aiSummary);
+        setSummaryLoading(false);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      router.push('/');
+    }
+  };
+
+  const fetchInterview = async () => {
+    try {
+      const response = await interviewsAPI.get(interviewId);
+      if (!response.data) throw new Error('No data');
+      setInterview(response.data);
+      
+      // Check if summary already exists
+      if (response.data.aiSummary) {
+        setAiSummary(response.data.aiSummary);
+        setSummaryLoading(false);
+      } else {
+        // Generate summary only if it doesn't exist
+        generateSummary(response.data);
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error("Fetch error:", err);
+      router.push('/interviews');
+    }
+  };
 
   const generateSummary = async (interviewData: any) => {
     setSummaryLoading(true);
@@ -103,6 +135,44 @@ export default function InterviewDetailPage() {
     } finally {
       setSummaryLoading(false);
     }
+  };
+
+  const handleMakePublic = async () => {
+    setPublicShareLoading(true);
+    try {
+      const response = await interviewsAPI.makePublic(interviewId);
+      setPublicAccessCode(response.data.publicAccessCode);
+      setInterview(response.data.interview);
+    } catch (err) {
+      console.error('Failed to make interview public:', err);
+    } finally {
+      setPublicShareLoading(false);
+    }
+  };
+
+  const handleMakePrivate = async () => {
+    setPublicShareLoading(true);
+    try {
+      await interviewsAPI.makePrivate(interviewId);
+      setPublicAccessCode(null);
+      const response = await interviewsAPI.get(interviewId);
+      setInterview(response.data);
+    } catch (err) {
+      console.error('Failed to make interview private:', err);
+    } finally {
+      setPublicShareLoading(false);
+    }
+  };
+
+  const copyPublicLink = () => {
+    const code = interview?.publicAccessCode || publicAccessCode;
+    if (!code) return;
+    
+    const publicUrl = `${window.location.origin}/interviews/${code}`;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
   };
 
   // toggleQuestion helper - only one accordion open at a time
@@ -179,28 +249,92 @@ export default function InterviewDetailPage() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex justify-between items-start">
             <div className="flex-1">
-              <Link href="/interviews" className="text-cyan-400 hover:text-cyan-300 mb-3 inline-flex items-center gap-2 font-semibold transition-colors text-sm group">
-                <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Interviews
-              </Link>
+              {isPublicView ? (
+                <div className="mb-3">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    🔗 Public Interview Results
+                  </span>
+                </div>
+              ) : (
+                <Link href="/interviews" className="text-cyan-400 hover:text-cyan-300 mb-3 inline-flex items-center gap-2 font-semibold transition-colors text-sm group">
+                  <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back to Interviews
+                </Link>
+              )}
               <div>
                 <h1 className="text-4xl font-black text-white mb-2">{interview.template?.name || 'Interview Details'}</h1>
-                {interview.candidateName && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                      {interview.candidateName.charAt(0)}
+                <div className="flex items-center gap-6">
+                  {interview.candidateName && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                        {interview.candidateName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase font-bold tracking-wider">Candidate</p>
+                        <p className="text-white font-semibold">{interview.candidateName}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-slate-400 text-xs uppercase font-bold tracking-wider">Candidate</p>
-                      <p className="text-white font-semibold">{interview.candidateName}</p>
+                  )}
+                  {isPublicView && interview.interviewer && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
+                        {interview.interviewer.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase font-bold tracking-wider">Conducted by</p>
+                        <p className="text-white font-semibold">{interview.interviewer}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 flex items-center gap-4">
+              {!isPublicView && interview.isPublic && (
+                <button
+                  onClick={copyPublicLink}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 rounded-lg text-sm font-semibold transition-all"
+                  title="Copy public link"
+                >
+                  {copySuccess ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                      Copy Link
+                    </>
+                  )}
+                </button>
+              )}
+              {!isPublicView && (
+                <button
+                  onClick={interview.isPublic ? handleMakePrivate : handleMakePublic}
+                  disabled={publicShareLoading}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    interview.isPublic
+                      ? 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30'
+                      : 'bg-slate-700/80 hover:bg-slate-600/80 text-slate-300 border border-slate-600/30'
+                  }`}
+                >
+                  {publicShareLoading ? (
+                    <span className="inline-block w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin"></span>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  {interview.isPublic ? 'Make Private' : 'Make Public'}
+                </button>
+              )}
               <span className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-bold ${
                 interview.status === 'completed' ? 'bg-gradient-to-r from-green-500/20 to-green-400/10 text-green-300' : 
                 interview.status === 'aborted' ? 'bg-gradient-to-r from-red-500/20 to-red-400/10 text-red-300' : 'bg-gradient-to-r from-blue-500/20 to-blue-400/10 text-blue-300'
@@ -276,6 +410,27 @@ export default function InterviewDetailPage() {
                 </svg>
                 AI-Powered Analysis
               </h2>
+              {!isPublicView && (
+                <button
+                  onClick={() => generateSummary(interview)}
+                  disabled={summaryLoading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {summaryLoading ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin"></span>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Regenerate
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Confidence Meter */}
@@ -482,6 +637,36 @@ export default function InterviewDetailPage() {
                           ))}
                         </ul>
                       </div>
+
+                      {/* Topics Assessment */}
+                      {section.topics && section.topics.length > 0 && (
+                        <div className="mt-5 pt-4 border-t border-white/10">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Topics Covered</p>
+                          <div className="flex flex-wrap gap-2">
+                            {section.topics.map((topic: any, tidx: number) => (
+                              <span
+                                key={tidx}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                  topic.understood
+                                    ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                    : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                                }`}
+                              >
+                                {topic.understood ? (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                )}
+                                <span>{topic.name}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
