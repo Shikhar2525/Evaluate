@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { useAsyncData } from '@/lib/hooks';
 import { templatesAPI, objectToArray } from '@/lib/api';
+import { geminiAPI, GeneratedTemplate } from '@/lib/gemini';
 import Link from 'next/link';
 import ProtectedPageWrapper from '@/lib/components/protected-page-wrapper';
 import RichTextEditor from '@/lib/components/rich-text-editor';
@@ -28,6 +29,22 @@ export default function TemplatesPage() {
   const [formLoading, setFormLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  
+  // AI Generation state
+  const [showAIForm, setShowAIForm] = useState(false);
+  const [aiFormData, setAIFormData] = useState({
+    position: '',
+    description: '',
+    fields: '',
+    duration: 60,
+    experienceLevel: '2-5 years',
+    interviewDifficulty: 'Medium',
+  });
+  const [aiGenerating, setAIGenerating] = useState(false);
+  const [generatedTemplate, setGeneratedTemplate] = useState<GeneratedTemplate | null>(null);
+  const [aiError, setAIError] = useState<string | null>(null);
+  const [savingGenerated, setSavingGenerated] = useState(false);
+  
   const { data: templates, loading: templatesLoading, refetch } = useAsyncData<any[]>(
     () => templatesAPI.list(),
     [user?.id],
@@ -69,6 +86,94 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleGenerateTemplate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiFormData.position.trim() || !aiFormData.fields.trim()) {
+      setAIError('Position and at least one field are required');
+      return;
+    }
+
+    setAIGenerating(true);
+    setAIError(null);
+    setGeneratedTemplate(null);
+
+    try {
+      const fields = aiFormData.fields
+        .split(',')
+        .map((f) => f.trim())
+        .filter((f) => f.length > 0);
+
+      if (fields.length === 0) {
+        setAIError('Please enter at least one field');
+        setAIGenerating(false);
+        return;
+      }
+
+      const template = await geminiAPI.generateTemplate({
+        position: aiFormData.position,
+        description: aiFormData.description,
+        fields,
+        duration: Math.max(aiFormData.duration, 15),
+        experienceLevel: aiFormData.experienceLevel,
+        interviewDifficulty: aiFormData.interviewDifficulty,
+      });
+
+      setGeneratedTemplate(template);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate template';
+      setAIError(message);
+      console.error('Template generation error:', err);
+    } finally {
+      setAIGenerating(false);
+    }
+  };
+
+  const handleSaveGeneratedTemplate = async () => {
+    if (!generatedTemplate) return;
+
+    setSavingGenerated(true);
+    try {
+      // Create the template
+      const templateRes = await templatesAPI.create({
+        name: generatedTemplate.name,
+        description: generatedTemplate.description,
+      });
+
+      const templateId = templateRes.data.id;
+
+      // Add sections and questions
+      for (const section of generatedTemplate.sections) {
+        const sectionRes = await templatesAPI.addSection(templateId, {
+          title: section.title,
+          order: section.order,
+        });
+
+        for (const question of section.questions) {
+          await templatesAPI.addQuestion(templateId, sectionRes.data.id, {
+            text: question.text,
+            difficulty: question.difficulty,
+            order: question.order,
+            expectedAnswer: question.expectedAnswer,
+            codeSnippet: question.codeSnippet,
+            codeLanguage: question.codeLanguage,
+          });
+        }
+      }
+
+      // Reset and refresh
+      setGeneratedTemplate(null);
+      setAIFormData({ position: '', description: '', fields: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium' });
+      setShowAIForm(false);
+      refetch();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to save template';
+      setAIError(message);
+      console.error('Save error:', err);
+    } finally {
+      setSavingGenerated(false);
+    }
+  };
+
   if (!user) {
     return <Loader message="Loading templates..." fullScreen />;
   }
@@ -95,17 +200,28 @@ export default function TemplatesPage() {
                   </div>
                   <h1 className="text-4xl font-black text-white">Interview Templates</h1>
                 </div>
-                <p className="text-cyan-300/90">Create and manage interview templates for consistent evaluations</p>
+              <p className="text-cyan-300/90">Create and manage interview templates for consistent evaluations</p>
               </div>
-              <button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-                className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/40 transition-all uppercase tracking-wide text-sm"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>New Template</span>
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAIForm(!showAIForm)}
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-purple-500/40 transition-all uppercase tracking-wide text-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Generate with AI</span>
+                </button>
+                <button
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-cyan-500/40 transition-all uppercase tracking-wide text-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>New Template</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -173,6 +289,286 @@ export default function TemplatesPage() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* AI Generation Form */}
+        {showAIForm && !generatedTemplate && (
+          <div className="bg-gradient-to-br from-white/8 to-white/3 rounded-2xl shadow-2xl p-8 mb-8 border border-purple-500/20 backdrop-blur-2xl animate-slide-in">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Generate Template with AI</h2>
+              <button
+                onClick={() => {
+                  setShowAIForm(false);
+                  setAIError(null);
+                }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-purple-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {aiError && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-red-300 text-sm">
+                {aiError}
+              </div>
+            )}
+
+            <form onSubmit={handleGenerateTemplate} className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                  Position / Job Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={aiFormData.position}
+                  onChange={(e) => setAIFormData({ ...aiFormData, position: e.target.value })}
+                  placeholder="e.g., Senior Frontend Engineer"
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Description</label>
+                <textarea
+                  value={aiFormData.description}
+                  onChange={(e) => setAIFormData({ ...aiFormData, description: e.target.value })}
+                  placeholder="e.g., We are looking for a frontend engineer with React expertise..."
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                  Interview Fields/Topics <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  value={aiFormData.fields}
+                  onChange={(e) => setAIFormData({ ...aiFormData, fields: e.target.value })}
+                  placeholder="e.g., Technical Skills, Communication, Problem Solving, Experience (comma separated)"
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium resize-none"
+                  rows={3}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Interview Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={aiFormData.duration}
+                  onChange={(e) => setAIFormData({ ...aiFormData, duration: parseInt(e.target.value) || 60 })}
+                  min="15"
+                  max="480"
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
+                />
+                <p className="text-xs text-purple-400/70 mt-1">Recommended: 45-120 minutes. This determines the number of questions.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                    Experience Level <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    value={aiFormData.experienceLevel}
+                    onChange={(e) => setAIFormData({ ...aiFormData, experienceLevel: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
+                  >
+                    <option value="0-1 years" className="bg-slate-900">0-1 years (Entry Level)</option>
+                    <option value="2-5 years" className="bg-slate-900">2-5 years (Mid Level)</option>
+                    <option value="5-10 years" className="bg-slate-900">5-10 years (Senior)</option>
+                    <option value="10+ years" className="bg-slate-900">10+ years (Expert/Lead)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                    Interview Difficulty <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    value={aiFormData.interviewDifficulty}
+                    onChange={(e) => setAIFormData({ ...aiFormData, interviewDifficulty: e.target.value })}
+                    className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
+                  >
+                    <option value="Easy" className="bg-slate-900">Easy</option>
+                    <option value="Medium" className="bg-slate-900">Medium</option>
+                    <option value="Hard" className="bg-slate-900">Hard</option>
+                    <option value="Very Hard" className="bg-slate-900">Very Hard (Expert)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4 pt-4">
+                <button
+                  type="submit"
+                  disabled={aiGenerating}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:shadow-none uppercase tracking-wide"
+                >
+                  {aiGenerating ? (
+                    <>
+                      <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Generate Template
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAIForm(false);
+                    setAIError(null);
+                  }}
+                  className="px-6 py-3 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* AI Generation Preview */}
+        {generatedTemplate && (
+          <div className="bg-gradient-to-br from-white/8 to-white/3 rounded-2xl shadow-2xl p-8 mb-8 border border-purple-500/20 backdrop-blur-2xl animate-slide-in">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Generated Template Preview</h2>
+              <button
+                onClick={() => setGeneratedTemplate(null)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors text-purple-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {aiError && (
+              <div className="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg text-red-300 text-sm">
+                {aiError}
+              </div>
+            )}
+
+            {/* Preview Content */}
+            <div className="space-y-6 mb-6">
+              {/* Template Header */}
+              <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <h3 className="text-xl font-bold text-white mb-2">{generatedTemplate.name}</h3>
+                {generatedTemplate.description && (
+                  <p className="text-purple-300/90">{generatedTemplate.description}</p>
+                )}
+              </div>
+
+              {/* Sections and Questions */}
+              <div className="space-y-4">
+                {generatedTemplate.sections.map((section, sectionIdx) => (
+                  <div key={sectionIdx} className="p-4 border border-purple-500/30 rounded-lg bg-white/5">
+                    <h4 className="text-lg font-bold text-purple-300 mb-3">{section.title}</h4>
+                    <div className="space-y-2 ml-4">
+                      {section.questions.map((q, qIdx) => (
+                        <div key={qIdx} className="border-l-2 border-purple-500/30 pl-4 py-2">
+                          <div className="flex items-start gap-3 text-sm mb-2">
+                            <span className="text-purple-400/70 font-semibold min-w-fit">Q{qIdx + 1}:</span>
+                            <div className="flex-1">
+                              <p className="text-white/90 mb-2">{q.text}</p>
+                              <span className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
+                                q.difficulty === 'Easy' ? 'bg-green-500/20 text-green-300' :
+                                q.difficulty === 'Medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                'bg-red-500/20 text-red-300'
+                              }`}>
+                                {q.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {q.expectedAnswer && (
+                            <div className="ml-8 mt-2 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded text-xs">
+                              <p className="text-cyan-300 font-semibold mb-1">Expected Answer:</p>
+                              <p className="text-cyan-200/80">{q.expectedAnswer}</p>
+                            </div>
+                          )}
+                          
+                          {q.codeSnippet && (
+                            <div className="ml-8 mt-2 p-3 bg-slate-800/50 border border-slate-600/30 rounded text-xs">
+                              <div className="flex items-center justify-between mb-2">
+                                <p className="text-slate-300 font-semibold">Expected Code:</p>
+                                {q.codeLanguage && (
+                                  <span className="px-2 py-0.5 bg-slate-700/50 text-slate-400 rounded text-xs">
+                                    {q.codeLanguage}
+                                  </span>
+                                )}
+                              </div>
+                              <pre className="text-slate-200 overflow-x-auto whitespace-pre-wrap">{q.codeSnippet}</pre>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-4 pt-4 border-t border-purple-500/20">
+              <button
+                onClick={handleSaveGeneratedTemplate}
+                disabled={savingGenerated}
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-lg hover:shadow-lg hover:shadow-purple-500/40 transition-all disabled:opacity-50 disabled:shadow-none uppercase tracking-wide"
+              >
+                {savingGenerated ? (
+                  <>
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Template
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setAIFormData({ position: '', description: '', fields: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium' });
+                  setGeneratedTemplate(null);
+                }}
+                className="px-6 py-3 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleGenerateTemplate}
+                disabled={aiGenerating}
+                className="inline-flex items-center px-6 py-3 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 transition-colors disabled:opacity-50"
+              >
+                {aiGenerating ? (
+                  <>
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
+                    Regenerating...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Regenerate
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
 

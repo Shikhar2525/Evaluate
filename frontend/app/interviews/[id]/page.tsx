@@ -316,81 +316,67 @@ export default function InterviewDetailPage() {
 
                     return (
                       <div key={iq.id} className="group">
-                        <button
-                          onClick={() => canExpand && toggleQuestion(iq.id)}
-                          className={`w-full transition-all ${
-                            isNotRated
-                              ? 'opacity-60'
-                              : ''
-                          }`}
-                        >
-                          <div className={`relative overflow-hidden rounded-xl p-6 bg-gradient-to-br from-white/8 to-white/3 border border-white/15 backdrop-blur-xl hover:border-white/25 transition-all group-hover:from-white/12 group-hover:to-white/6 ${
-                            canExpand ? 'cursor-pointer' : 'cursor-default'
-                          }`}>
-                            {/* Shine effect */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-full group-hover:translate-x-0 duration-500"></div>
+                        <div className={`relative rounded-lg px-4 py-3 border transition-all duration-200 ${
+                          isNotRated 
+                            ? 'bg-slate-800/40 border-slate-700/40 opacity-65 cursor-default' 
+                            : 'bg-slate-800/50 border-cyan-500/50 hover:border-cyan-400 hover:bg-slate-800/70 hover:shadow-lg hover:shadow-cyan-500/20 cursor-pointer'
+                        }`}
+                        onClick={() => canExpand && toggleQuestion(iq.id)}>
+                          <div className="flex items-center justify-between gap-3">
+                            {/* Question Text */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className={`text-sm font-semibold leading-snug break-words ${
+                                isNotRated 
+                                  ? 'text-slate-500 line-through' 
+                                  : 'text-slate-100'
+                              }`}>
+                                {iq.text}
+                              </h3>
+                            </div>
 
-                            <div className="relative z-10 flex justify-between items-start gap-4">
-                              <div className="flex-1">
-                                <h3 className={`font-bold text-lg mb-3 transition-colors ${
-                                  isNotRated ? 'text-slate-400 line-through' : 'text-white group-hover:text-cyan-300'
+                            {/* Right Section: Badges, Rating, Arrow */}
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              {iq.difficulty && (
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-500/30 text-red-200 uppercase">
+                                  {iq.difficulty.charAt(0)}
+                                </span>
+                              )}
+                              {isNotRated && (
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                                  isSkipped 
+                                    ? 'bg-red-500/30 text-red-200' 
+                                    : 'bg-yellow-500/30 text-yellow-200'
                                 }`}>
-                                  {iq.text}
-                                </h3>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {iq.difficulty && (
-                                    <span className="text-xs font-bold px-3 py-1 rounded-md bg-red-500/20 text-red-300 border border-red-500/30">
-                                      {iq.difficulty.toUpperCase()}
-                                    </span>
-                                  )}
-                                  {isNotRated && (
-                                    <span className={`text-xs font-bold px-3 py-1 rounded-md border ${
-                                      isSkipped 
-                                        ? 'bg-red-500/20 text-red-300 border-red-500/30' 
-                                        : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
-                                    }`}>
-                                      {isSkipped ? '✕ SKIPPED' : '⊘ NOT RATED'}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                {iq.feedback?.rating && !isNotRated && (
-                                  <div className="flex items-center gap-1 px-3 py-1 rounded-lg bg-yellow-500/20 border border-yellow-500/30">
-                                    <span className="text-yellow-300 font-bold">★</span>
-                                    <span className="text-yellow-300 font-bold">{iq.feedback.rating}/5</span>
-                                  </div>
-                                )}
-                                {canExpand && (
-                                  <svg className={`w-5 h-5 text-slate-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                                  </svg>
-                                )}
-                              </div>
+                                  {isSkipped ? '✕' : '⊘'}
+                                </span>
+                              )}
+                              {iq.feedback?.rating && !isNotRated && (
+                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-yellow-500/30 text-yellow-200">
+                                  ★{iq.feedback.rating}
+                                </span>
+                              )}
+                              {canExpand && (
+                                <svg className={`w-4 h-4 text-cyan-400 transition-transform duration-200 flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                </svg>
+                              )}
                             </div>
                           </div>
-                        </button>
-
-                        {/* Skipped Indicator */}
-                        {isSkipped && (
-                          <div className="mt-2 rounded-xl p-4 text-center bg-gradient-to-r from-red-500/10 to-red-400/10 border border-red-500/20">
-                            <p className="font-semibold text-sm text-red-300">✕ This question was skipped</p>
-                          </div>
-                        )}
+                        </div>
 
                         {/* Expanded Content */}
                         {isExpanded && hasContent && (
-                          <div className="mt-2 rounded-xl p-6 bg-gradient-to-br from-white/8 to-white/3 border border-white/15 backdrop-blur-xl space-y-6">
+                          <div className="mt-1 ml-0 rounded-lg overflow-hidden border border-cyan-500/30 bg-slate-900/50 backdrop-blur-sm">
                             {hasNotes && (
-                              <div>
-                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Interviewer Notes</p>
-                                <p className="text-slate-300 text-sm leading-relaxed font-light whitespace-pre-wrap">{iq.feedback?.notes}</p>
+                              <div className="px-4 py-2.5 border-b border-cyan-500/20">
+                                <p className="text-cyan-400 text-xs font-bold mb-2">Notes:</p>
+                                <p className="text-slate-300 text-xs leading-relaxed whitespace-pre-wrap">{iq.feedback?.notes}</p>
                               </div>
                             )}
                             {hasCodeSnippet && (
-                              <div>
-                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Code Snippet</p>
-                                <pre className="bg-slate-950/50 rounded-lg border border-white/10 p-4 text-xs font-mono text-slate-300 overflow-x-auto max-h-64 backdrop-blur-sm">
+                              <div className="px-4 py-2.5">
+                                <p className="text-cyan-400 text-xs font-bold mb-2">Code:</p>
+                                <pre className="bg-slate-950/60 rounded border border-slate-700 p-2.5 text-xs font-mono text-slate-300 overflow-x-auto max-h-48">
                                   {iq.codeSnippet}
                                 </pre>
                               </div>
