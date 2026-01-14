@@ -246,4 +246,10 @@ export const interviewsAPI = {
     );
     return { data: { questionId } };
   },
+
+  saveAISummary: async (id: string, summary: any) => {
+    await firebaseInterviewsService.updateAISummary(id, summary);
+    const interview = await firebaseInterviewsService.get(id);
+    return { data: interview };
+  },
 };

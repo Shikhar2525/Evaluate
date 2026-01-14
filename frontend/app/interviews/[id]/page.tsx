@@ -4,6 +4,7 @@ import { useState, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { interviewsAPI } from '@/lib/api';
+import { geminiAPI } from '@/lib/gemini';
 import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 import Loader from '@/lib/components/loader';
@@ -43,6 +44,9 @@ export default function InterviewDetailPage() {
   const [loading, setLoading] = useState(true);
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
   const [filterTab, setFilterTab] = useState<'all' | 'rated' | 'skipped'>('rated');
+  const [aiSummary, setAiSummary] = useState<any>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useLayoutEffect(() => {
     const timer = setTimeout(() => {
@@ -59,6 +63,15 @@ export default function InterviewDetailPage() {
         const response = await interviewsAPI.get(interviewId);
         if (!response.data) throw new Error('No data');
         setInterview(response.data);
+        
+        // Check if summary already exists
+        if (response.data.aiSummary) {
+          setAiSummary(response.data.aiSummary);
+          setSummaryLoading(false);
+        } else {
+          // Generate summary only if it doesn't exist
+          generateSummary(response.data);
+        }
         setLoading(false);
       } catch (err) {
         console.error("Fetch error:", err);
@@ -68,6 +81,29 @@ export default function InterviewDetailPage() {
 
     fetchInterview();
   }, [user, interviewId, router]);
+
+  const generateSummary = async (interviewData: any) => {
+    setSummaryLoading(true);
+    setSummaryError(null);
+    try {
+      const summary = await geminiAPI.generateInterviewSummary(interviewData);
+      setAiSummary(summary);
+      
+      // Save the generated summary to the backend
+      try {
+        await interviewsAPI.saveAISummary(interviewId, summary);
+      } catch (saveErr) {
+        console.warn('Failed to save summary to backend:', saveErr);
+        // Continue even if save fails - summary is still displayed
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to generate summary';
+      setSummaryError(message);
+      console.error('Summary generation error:', err);
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
 
   // toggleQuestion helper - only one accordion open at a time
   const toggleQuestion = (questionId: string) => {
@@ -229,6 +265,246 @@ export default function InterviewDetailPage() {
                 <p className="text-white font-semibold text-lg">{formatDistanceToNow(new Date(interview.createdAt), { addSuffix: true })}</p>
               </div>
             </div>
+          </div>
+        )}
+        {aiSummary && !summaryError && (
+          <div className="mb-16">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-3xl font-black text-white flex items-center gap-3">
+                <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                AI-Powered Analysis
+              </h2>
+            </div>
+
+            {/* Confidence Meter */}
+            {aiSummary.confidence && (
+              <div className="group relative mb-8">
+                <div className={`absolute -inset-0.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl ${
+                  aiSummary.confidence.score >= 80 ? 'bg-gradient-to-r from-green-400/30 to-emerald-400/30' :
+                  aiSummary.confidence.score >= 65 ? 'bg-gradient-to-r from-blue-400/30 to-cyan-400/30' :
+                  aiSummary.confidence.score >= 50 ? 'bg-gradient-to-r from-yellow-400/30 to-amber-400/30' :
+                  aiSummary.confidence.score >= 35 ? 'bg-gradient-to-r from-orange-400/30 to-red-400/30' :
+                  'bg-gradient-to-r from-red-400/30 to-red-500/30'
+                }`}></div>
+                <div className={`relative rounded-2xl p-8 backdrop-blur-xl hover:border-white/40 transition-all border ${
+                  aiSummary.confidence.score >= 80 ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20' :
+                  aiSummary.confidence.score >= 65 ? 'bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20' :
+                  aiSummary.confidence.score >= 50 ? 'bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border-yellow-500/20' :
+                  aiSummary.confidence.score >= 35 ? 'bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/20' :
+                  'bg-gradient-to-br from-red-500/10 to-red-600/10 border-red-500/20'
+                }`}>
+                  <div className="flex items-start justify-between gap-6 mb-6">
+                    <div className="flex-1">
+                      <h3 className={`text-2xl font-black mb-2 ${
+                        aiSummary.confidence.score >= 80 ? 'text-green-300' :
+                        aiSummary.confidence.score >= 65 ? 'text-blue-300' :
+                        aiSummary.confidence.score >= 50 ? 'text-yellow-300' :
+                        aiSummary.confidence.score >= 35 ? 'text-orange-300' :
+                        'text-red-300'
+                      }`}>
+                        {aiSummary.confidence.level}
+                      </h3>
+                      <p className={`font-bold text-lg mb-3 ${
+                        aiSummary.confidence.score >= 80 ? 'text-green-400' :
+                        aiSummary.confidence.score >= 65 ? 'text-blue-400' :
+                        aiSummary.confidence.score >= 50 ? 'text-yellow-400' :
+                        aiSummary.confidence.score >= 35 ? 'text-orange-400' :
+                        'text-red-400'
+                      }`}>
+                        {aiSummary.confidence.hiring_likelihood}
+                      </p>
+                      <p className="text-slate-300 text-sm leading-relaxed">{aiSummary.confidence.description}</p>
+                    </div>
+                    {/* Circular Progress Meter */}
+                    <div className="flex-shrink-0">
+                      <div className="relative w-32 h-32 flex items-center justify-center">
+                        <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 120 120">
+                          {/* Background circle */}
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            fill="none"
+                            stroke="rgba(255,255,255,0.1)"
+                            strokeWidth="8"
+                          />
+                          {/* Progress circle */}
+                          <circle
+                            cx="60"
+                            cy="60"
+                            r="50"
+                            fill="none"
+                            stroke={
+                              aiSummary.confidence.score >= 80 ? '#10b981' :
+                              aiSummary.confidence.score >= 65 ? '#3b82f6' :
+                              aiSummary.confidence.score >= 50 ? '#eab308' :
+                              aiSummary.confidence.score >= 35 ? '#f97316' :
+                              '#ef4444'
+                            }
+                            strokeWidth="8"
+                            strokeDasharray={`${(aiSummary.confidence.score / 100) * 314} 314`}
+                            strokeLinecap="round"
+                            style={{transition: 'stroke-dasharray 1s ease'}}
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className={`text-3xl font-black ${
+                              aiSummary.confidence.score >= 80 ? 'text-green-400' :
+                              aiSummary.confidence.score >= 65 ? 'text-blue-400' :
+                              aiSummary.confidence.score >= 50 ? 'text-yellow-400' :
+                              aiSummary.confidence.score >= 35 ? 'text-orange-400' :
+                              'text-red-400'
+                            }`}>
+                              {aiSummary.confidence.score}%
+                            </div>
+                            <div className="text-xs text-slate-400 font-semibold">Score</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Overall Summary */}
+            <div className="group relative mb-8">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-400/30 via-pink-400/30 to-purple-400/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+              <div className="relative rounded-2xl p-8 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 backdrop-blur-xl hover:border-purple-500/40 transition-all">
+                <h3 className="text-2xl font-bold text-purple-300 mb-4">Overall Performance Summary</h3>
+                <p className="text-slate-300 text-base leading-relaxed mb-6">{aiSummary.overallSummary}</p>
+                <p className="text-slate-400 text-sm leading-relaxed italic border-l-4 border-purple-500/40 pl-4">{aiSummary.overallRating}</p>
+              </div>
+            </div>
+
+            {/* Key Strengths & Areas for Improvement */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Key Strengths */}
+              <div className="group relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-green-400/30 to-emerald-400/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+                <div className="relative rounded-2xl p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20 backdrop-blur-xl hover:border-green-500/40 transition-all">
+                  <h4 className="text-lg font-bold text-green-300 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                    </svg>
+                    Key Strengths
+                  </h4>
+                  <ul className="space-y-2">
+                    {aiSummary.keyStrengths?.map((strength: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                        <span className="text-green-400 font-bold mt-0.5">✓</span>
+                        <span>{strength}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Areas for Improvement */}
+              <div className="group relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-amber-400/30 to-orange-400/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+                <div className="relative rounded-2xl p-6 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 backdrop-blur-xl hover:border-amber-500/40 transition-all">
+                  <h4 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Areas for Improvement
+                  </h4>
+                  <ul className="space-y-2">
+                    {aiSummary.areasForImprovement?.map((area: string, idx: number) => (
+                      <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                        <span className="text-amber-400 font-bold mt-0.5">→</span>
+                        <span>{area}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="group relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400/30 to-blue-400/30 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+              <div className="relative rounded-2xl p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 backdrop-blur-xl hover:border-cyan-500/40 transition-all">
+                <h4 className="text-lg font-bold text-cyan-300 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  Recommendations
+                </h4>
+                <ol className="space-y-2">
+                  {aiSummary.recommendations?.map((rec: string, idx: number) => (
+                    <li key={idx} className="flex items-start gap-3 text-sm text-slate-300">
+                      <span className="text-cyan-400 font-bold min-w-fit mt-0.5">{idx + 1}.</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            {/* Section-wise Analysis */}
+            <div className="mt-8">
+              <h3 className="text-xl font-bold text-white mb-6">Section-wise Analysis</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {aiSummary.sections?.map((section: any, idx: number) => (
+                  <div key={idx} className="group relative">
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-slate-400/20 to-slate-400/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-xl"></div>
+                    <div className="relative rounded-2xl p-6 bg-gradient-to-br from-white/8 to-white/3 border border-white/15 backdrop-blur-xl hover:border-white/25 transition-all">
+                      <h5 className="text-lg font-bold text-white mb-4">{section.name}</h5>
+                      <p className="text-slate-400 text-sm leading-relaxed mb-4">{section.summary}</p>
+                      
+                      {/* Section Strengths */}
+                      <div className="mb-4">
+                        <p className="text-xs font-bold text-green-400 uppercase tracking-wide mb-2">Strengths</p>
+                        <ul className="space-y-1">
+                          {section.strengths?.map((strength: string, sidx: number) => (
+                            <li key={sidx} className="text-xs text-slate-300 flex items-start gap-2">
+                              <span className="text-green-400 mt-0.5">✓</span>
+                              <span>{strength}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Section Gaps */}
+                      <div>
+                        <p className="text-xs font-bold text-amber-400 uppercase tracking-wide mb-2">Gaps</p>
+                        <ul className="space-y-1">
+                          {section.gaps?.map((gap: string, gidx: number) => (
+                            <li key={gidx} className="text-xs text-slate-300 flex items-start gap-2">
+                              <span className="text-amber-400 mt-0.5">→</span>
+                              <span>{gap}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {summaryLoading && (
+          <div className="mb-16 flex items-center justify-center">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-purple-500/20 border border-purple-500/40 mb-4">
+                <span className="inline-block w-6 h-6 border-2 border-purple-500/30 border-t-purple-500 rounded-full animate-spin"></span>
+              </div>
+              <p className="text-slate-300 font-semibold">Generating AI Analysis...</p>
+            </div>
+          </div>
+        )}
+
+        {summaryError && (
+          <div className="mb-16 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-sm">
+            <p className="font-semibold mb-1">Summary Generation Error</p>
+            <p>{summaryError}</p>
           </div>
         )}
 

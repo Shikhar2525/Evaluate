@@ -8,6 +8,8 @@ import Link from 'next/link';
 import Loader from '@/lib/components/loader';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/atom-one-dark.css';
+import * as prettierStandalone from 'prettier/standalone';
+import babelParser from 'prettier/parser-babel';
 
 export default function InterviewConductPage() {
   const { user } = useAuth();
@@ -37,6 +39,7 @@ export default function InterviewConductPage() {
   const [isCodeEditable, setIsCodeEditable] = useState(false);
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
+  const [isFormatting, setIsFormatting] = useState(false);
 
   // Initialize start time from localStorage
   useEffect(() => {
@@ -180,9 +183,120 @@ export default function InterviewConductPage() {
     }
   };
 
+  // Format code with Prettier standalone
+  const formatCodeWithPrettier = async (code: string, language: string): Promise<string> => {
+    try {
+      if (!code || typeof code !== 'string') {
+        return code;
+      }
+
+      // Map language to prettier parser
+      let parser: string = 'babel';
+      let plugins: any[] = [babelParser];
+      
+      if (language === 'javascript' || language === 'typescript') {
+        parser = 'babel';
+        plugins = [babelParser];
+      } else if (language === 'json') {
+        parser = 'json';
+        plugins = [babelParser];
+      } else if (language === 'html') {
+        parser = 'html';
+        plugins = [babelParser];
+      } else if (language === 'css') {
+        parser = 'css';
+        plugins = [babelParser];
+      } else {
+        // For unsupported languages, use fallback
+        return formatCode(code, language);
+      }
+
+      const formatted = await prettierStandalone.format(code, {
+        parser,
+        plugins,
+        printWidth: 80,
+        tabWidth: 2,
+        useTabs: false,
+        semi: true,
+        singleQuote: true,
+        trailingComma: 'es5',
+      });
+
+      return formatted;
+    } catch (error) {
+      // If formatting fails, use fallback formatter
+      return formatCode(code, language);
+    }
+  };
+
+  // Format code (synchronous fallback version)
+  const formatCode = (code: string, language: string): string => {
+    try {
+      if (!code || typeof code !== 'string') {
+        return code;
+      }
+
+      // For JavaScript/TypeScript
+      if (language === 'javascript' || language === 'typescript') {
+        let formatted = code;
+        let indentLevel = 0;
+        
+        // First, split multiple statements on same line into separate lines
+        // Only add newline if there isn't already one after the semicolon
+        formatted = formatted.replace(/;(?=\s*(?!\n)[a-zA-Z0-9_$({])/g, ';\n');
+        
+        const lines = formatted.split('\n');
+        const result: string[] = [];
+
+        for (let line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            result.push('');
+            continue;
+          }
+
+          // Decrease indent for closing braces
+          if (trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
+            indentLevel = Math.max(0, indentLevel - 1);
+          }
+
+          // Add line with proper indentation
+          result.push('  '.repeat(indentLevel) + trimmed);
+
+          // Increase indent for opening braces
+          if (trimmed.endsWith('{') || trimmed.endsWith('[') || trimmed.endsWith('(')) {
+            indentLevel++;
+          } else if (trimmed.includes('{')) {
+            const openCount = (trimmed.match(/{/g) || []).length;
+            const closeCount = (trimmed.match(/}/g) || []).length;
+            indentLevel += openCount - closeCount;
+          }
+        }
+
+        return result.join('\n');
+      }
+
+      // For JSON
+      if (language === 'json') {
+        const parsed = JSON.parse(code);
+        return JSON.stringify(parsed, null, 2);
+      }
+
+      // For other languages, return as-is
+      return code;
+    } catch (error) {
+      // If formatting fails, return original code
+      return code;
+    }
+  };
+
   // Get syntax highlighting
   const getHighlightedCode = (code: string, language: string) => {
     try {
+      if (!code || typeof code !== 'string') {
+        return '';
+      }
+      
       const langMap: { [key: string]: string } = {
         javascript: 'javascript',
         typescript: 'typescript',
@@ -206,11 +320,19 @@ export default function InterviewConductPage() {
       };
       
       const hlLanguage = langMap[language] || 'javascript';
-      return hljs.highlight(code, { language: hlLanguage, ignoreIllegals: true }).value;
+      const highlighted = hljs.highlight(code, { language: hlLanguage, ignoreIllegals: true });
+      return highlighted?.value || code;
     } catch (error) {
-      return hljs.highlightAuto(code).value;
+      try {
+        const highlighted = hljs.highlightAuto(code);
+        return highlighted?.value || code;
+      } catch {
+        return code;
+      }
     }
   };
+
+
 
   // Execute code
   const executeCode = async () => {
@@ -281,9 +403,10 @@ export default function InterviewConductPage() {
       setCodeLanguage('javascript');
     }
     
-    // Initialize editable code
+    // Initialize editable code with formatted version
     if (currentQuestion?.codeSnippet) {
-      setEditableCode(currentQuestion.codeSnippet);
+      const formattedCode = formatCode(currentQuestion.codeSnippet, currentQuestion?.codeLanguage || 'javascript');
+      setEditableCode(formattedCode);
     }
     
     // Mark previous question as visited if it didn't have a rating
@@ -794,9 +917,9 @@ export default function InterviewConductPage() {
                       </div>
                       
                       {/* Code Content with Line Numbers */}
-                      <div className="flex">
+                      <div className="flex max-h-96">
                         {/* Line Numbers */}
-                        <div className="bg-slate-900/50 text-[#79C9C5]/30 text-right py-4 px-3 select-none border-r border-[#3F9AAE]/10 font-mono text-sm leading-6">
+                        <div className="bg-slate-900/50 text-[#79C9C5]/30 text-right py-4 px-3 select-none border-r border-[#3F9AAE]/10 font-mono text-sm leading-6 overflow-y-auto">
                           {(isCodeEditable ? editableCode : currentQuestion.codeSnippet).split('\n').map((_: string, index: number) => (
                             <div key={index}>
                               {index + 1}
@@ -805,25 +928,35 @@ export default function InterviewConductPage() {
                         </div>
                         
                         {/* Code */}
-                        <div className="flex-1 overflow-x-auto">
+                        <div className="flex-1 overflow-y-auto overflow-x-auto">
                           {isCodeEditable ? (
                             <textarea
                               value={editableCode}
                               onChange={(e) => setEditableCode(e.target.value)}
-                              className="w-full bg-transparent text-[#79C9C5] font-mono text-sm leading-6 p-4 focus:outline-none resize-none"
-                              style={{ tabSize: 2 }}
+                              className="w-full h-full bg-transparent text-[#79C9C5] font-mono text-sm leading-6 p-4 focus:outline-none resize-none"
+                              style={{ tabSize: 2, whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
                               spellCheck={false}
                             />
                           ) : (
-                            <pre className="p-4 overflow-x-auto m-0">
-                              <code
-                                className={`font-mono text-sm leading-6 hljs language-${codeLanguage}`}
-                                style={{ tabSize: 2, display: 'block', whiteSpace: 'pre' }}
-                                dangerouslySetInnerHTML={{
-                                  __html: getHighlightedCode(currentQuestion.codeSnippet, codeLanguage)
-                                }}
-                              />
-                            </pre>
+                            <div className="p-4 overflow-x-auto overflow-y-auto">
+                              <pre className="m-0 bg-transparent">
+                                <code
+                                  className={`font-mono text-sm leading-6 hljs language-${codeLanguage}`}
+                                  style={{ 
+                                    tabSize: 2, 
+                                    display: 'block', 
+                                    whiteSpace: 'pre-wrap',
+                                    wordWrap: 'break-word',
+                                    wordBreak: 'break-word',
+                                    backgroundColor: 'transparent',
+                                    backgroundImage: 'none'
+                                  }}
+                                  dangerouslySetInnerHTML={{
+                                    __html: getHighlightedCode(formatCode(currentQuestion.codeSnippet, codeLanguage), codeLanguage)
+                                  }}
+                                />
+                              </pre>
+                            </div>
                           )}
                         </div>
                       </div>

@@ -34,16 +34,16 @@ export default function TemplatesPage() {
   const [showAIForm, setShowAIForm] = useState(false);
   const [aiFormData, setAIFormData] = useState({
     position: '',
-    description: '',
-    fields: '',
     duration: 60,
     experienceLevel: '2-5 years',
     interviewDifficulty: 'Medium',
+    sections: [{ name: '', details: '', questionCount: 5 }],
   });
   const [aiGenerating, setAIGenerating] = useState(false);
   const [generatedTemplate, setGeneratedTemplate] = useState<GeneratedTemplate | null>(null);
   const [aiError, setAIError] = useState<string | null>(null);
   const [savingGenerated, setSavingGenerated] = useState(false);
+  const [regenerationEnhancement, setRegenerationEnhancement] = useState('');
   
   const { data: templates, loading: templatesLoading, refetch } = useAsyncData<any[]>(
     () => templatesAPI.list(),
@@ -86,37 +86,34 @@ export default function TemplatesPage() {
     }
   };
 
-  const handleGenerateTemplate = async (e: React.FormEvent) => {
+  const handleGenerateTemplate = async (e: React.FormEvent, enhancement?: string) => {
     e.preventDefault();
-    if (!aiFormData.position.trim() || !aiFormData.fields.trim()) {
-      setAIError('Position and at least one field are required');
+    const validSections = aiFormData.sections.filter(s => s.name.trim());
+    
+    if (!aiFormData.position.trim() || validSections.length === 0) {
+      setAIError('Position and at least one section are required');
       return;
     }
 
     setAIGenerating(true);
     setAIError(null);
-    setGeneratedTemplate(null);
+    if (!enhancement) {
+      setGeneratedTemplate(null);
+    }
 
     try {
-      const fields = aiFormData.fields
-        .split(',')
-        .map((f) => f.trim())
-        .filter((f) => f.length > 0);
-
-      if (fields.length === 0) {
-        setAIError('Please enter at least one field');
-        setAIGenerating(false);
-        return;
-      }
-
       const template = await geminiAPI.generateTemplate({
         position: aiFormData.position,
-        description: aiFormData.description,
-        fields,
+        description: '',
+        fields: validSections.map(s => s.name),
+        sectionDetails: validSections.map(s => ({ name: s.name, details: s.details, questionCount: s.questionCount })),
         duration: Math.max(aiFormData.duration, 15),
         experienceLevel: aiFormData.experienceLevel,
         interviewDifficulty: aiFormData.interviewDifficulty,
+        enhancement: enhancement || undefined,
       });
+
+      setRegenerationEnhancement('');
 
       setGeneratedTemplate(template);
     } catch (err) {
@@ -162,7 +159,7 @@ export default function TemplatesPage() {
 
       // Reset and refresh
       setGeneratedTemplate(null);
-      setAIFormData({ position: '', description: '', fields: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium' });
+      setAIFormData({ position: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium', sections: [{ name: '', details: '', questionCount: 5 }] });
       setShowAIForm(false);
       refetch();
     } catch (err) {
@@ -317,59 +314,21 @@ export default function TemplatesPage() {
             )}
 
             <form onSubmit={handleGenerateTemplate} className="space-y-6">
-              <div>
-                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
-                  Position / Job Title <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={aiFormData.position}
-                  onChange={(e) => setAIFormData({ ...aiFormData, position: e.target.value })}
-                  placeholder="e.g., Senior Frontend Engineer"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Description</label>
-                <textarea
-                  value={aiFormData.description}
-                  onChange={(e) => setAIFormData({ ...aiFormData, description: e.target.value })}
-                  placeholder="e.g., We are looking for a frontend engineer with React expertise..."
-                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium resize-none"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
-                  Interview Fields/Topics <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={aiFormData.fields}
-                  onChange={(e) => setAIFormData({ ...aiFormData, fields: e.target.value })}
-                  placeholder="e.g., Technical Skills, Communication, Problem Solving, Experience (comma separated)"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium resize-none"
-                  rows={3}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Interview Duration (minutes)</label>
-                <input
-                  type="number"
-                  value={aiFormData.duration}
-                  onChange={(e) => setAIFormData({ ...aiFormData, duration: parseInt(e.target.value) || 60 })}
-                  min="15"
-                  max="480"
-                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
-                />
-                <p className="text-xs text-purple-400/70 mt-1">Recommended: 45-120 minutes. This determines the number of questions.</p>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                    Position / Job Title <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={aiFormData.position}
+                    onChange={(e) => setAIFormData({ ...aiFormData, position: e.target.value })}
+                    placeholder="e.g., Senior Frontend Engineer"
+                    className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
+                    required
+                  />
+                </div>
+
                 <div>
                   <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
                     Experience Level <span className="text-red-400">*</span>
@@ -385,22 +344,109 @@ export default function TemplatesPage() {
                     <option value="10+ years" className="bg-slate-900">10+ years (Expert/Lead)</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
-                    Interview Difficulty <span className="text-red-400">*</span>
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">Interview Duration (minutes)</label>
+                <input
+                  type="number"
+                  value={aiFormData.duration}
+                  onChange={(e) => setAIFormData({ ...aiFormData, duration: parseInt(e.target.value) || 60 })}
+                  min="15"
+                  max="480"
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-bold text-purple-300 uppercase tracking-wide">
+                    Sections <span className="text-red-400">*</span>
                   </label>
-                  <select
-                    value={aiFormData.interviewDifficulty}
-                    onChange={(e) => setAIFormData({ ...aiFormData, interviewDifficulty: e.target.value })}
-                    className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
+                  <button
+                    type="button"
+                    onClick={() => setAIFormData({ ...aiFormData, sections: [...aiFormData.sections, { name: '', details: '', questionCount: 5 }] })}
+                    className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-semibold rounded-lg border border-purple-500/40 transition-all"
                   >
-                    <option value="Easy" className="bg-slate-900">Easy</option>
-                    <option value="Medium" className="bg-slate-900">Medium</option>
-                    <option value="Hard" className="bg-slate-900">Hard</option>
-                    <option value="Very Hard" className="bg-slate-900">Very Hard (Expert)</option>
-                  </select>
+                    + Add Section
+                  </button>
                 </div>
+                <div className="space-y-4">
+                  {aiFormData.sections.map((section, index) => (
+                    <div key={index} className="bg-white/5 border border-purple-500/30 rounded-lg p-4 space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 space-y-3">
+                          <input
+                            type="text"
+                            value={section.name}
+                            onChange={(e) => {
+                              const newSections = [...aiFormData.sections];
+                              newSections[index].name = e.target.value;
+                              setAIFormData({ ...aiFormData, sections: newSections });
+                            }}
+                            placeholder="Section name (e.g., Technical Skills)"
+                            className="w-full px-3 py-2 rounded-lg border border-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white/5 text-white placeholder-purple-400/40 text-sm font-medium"
+                            required
+                          />
+                          <textarea
+                            value={section.details}
+                            onChange={(e) => {
+                              const newSections = [...aiFormData.sections];
+                              newSections[index].details = e.target.value;
+                              setAIFormData({ ...aiFormData, sections: newSections });
+                            }}
+                            placeholder="Details about how questions should be (e.g., Focus on React hooks, state management, performance optimization)"
+                            className="w-full px-3 py-2 rounded-lg border border-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white/5 text-white placeholder-purple-400/40 text-sm resize-none"
+                            rows={2}
+                          />
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs text-purple-300 font-medium">Questions:</label>
+                            <input
+                              type="number"
+                              value={section.questionCount}
+                              onChange={(e) => {
+                                const newSections = [...aiFormData.sections];
+                                newSections[index].questionCount = Math.max(1, parseInt(e.target.value) || 5);
+                                setAIFormData({ ...aiFormData, sections: newSections });
+                              }}
+                              min="1"
+                              max="20"
+                              className="w-20 px-3 py-1.5 rounded-lg border border-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white/5 text-white text-sm"
+                            />
+                          </div>
+                        </div>
+                        {aiFormData.sections.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setAIFormData({ ...aiFormData, sections: aiFormData.sections.filter((_, i) => i !== index) })}
+                            className="p-2 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
+                            title="Remove section"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-purple-300 mb-3 uppercase tracking-wide">
+                  Interview Difficulty <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={aiFormData.interviewDifficulty}
+                  onChange={(e) => setAIFormData({ ...aiFormData, interviewDifficulty: e.target.value })}
+                  className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white backdrop-blur-sm transition-all font-medium"
+                >
+                  <option value="Easy" className="bg-slate-900">Easy</option>
+                  <option value="Medium" className="bg-slate-900">Medium</option>
+                  <option value="Hard" className="bg-slate-900">Hard</option>
+                  <option value="Very Hard" className="bg-slate-900">Very Hard (Expert)</option>
+                </select>
               </div>
 
               <div className="flex items-center space-x-4 pt-4">
@@ -465,8 +511,21 @@ export default function TemplatesPage() {
               <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                 <h3 className="text-xl font-bold text-white mb-2">{generatedTemplate.name}</h3>
                 {generatedTemplate.description && (
-                  <p className="text-purple-300/90">{generatedTemplate.description}</p>
+                  <p className="text-purple-300/90 mb-3">{generatedTemplate.description}</p>
                 )}
+                {/* Section Summary */}
+                <div className="mt-3 pt-3 border-t border-purple-500/20">
+                  <p className="text-sm text-purple-300 font-semibold mb-2">Template Overview:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {generatedTemplate.sections.map((section, idx) => (
+                      <div key={idx} className="px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs">
+                        <span className="text-purple-200 font-semibold">{section.title}</span>
+                        <span className="text-purple-300/70 ml-2">({section.questions.length} questions)</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-purple-400/70 mt-2">Total: {generatedTemplate.sections.reduce((acc, s) => acc + s.questions.length, 0)} questions across {generatedTemplate.sections.length} sections</p>
+                </div>
               </div>
 
               {/* Sections and Questions */}
@@ -519,8 +578,23 @@ export default function TemplatesPage() {
               </div>
             </div>
 
+            {/* Regeneration Enhancement */}
+            <div className="mt-6 p-4 bg-white/5 border border-purple-500/30 rounded-lg">
+              <label className="block text-sm font-bold text-purple-300 mb-2 uppercase tracking-wide">
+                Want to improve the template? Describe your changes:
+              </label>
+              <textarea
+                value={regenerationEnhancement}
+                onChange={(e) => setRegenerationEnhancement(e.target.value)}
+                placeholder="e.g., Add more questions about system design, make coding questions harder, focus more on React performance optimization..."
+                className="w-full px-4 py-3 rounded-lg border border-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent bg-white/5 text-white placeholder-purple-400/40 backdrop-blur-sm transition-all font-medium resize-none"
+                rows={3}
+              />
+              <p className="text-xs text-purple-400/70 mt-2">Provide specific feedback about what you'd like to change, and click Regenerate to create an improved version.</p>
+            </div>
+
             {/* Action Buttons */}
-            <div className="flex items-center space-x-4 pt-4 border-t border-purple-500/20">
+            <div className="flex items-center space-x-4 pt-4 border-t border-purple-500/20 mt-4">
               <button
                 onClick={handleSaveGeneratedTemplate}
                 disabled={savingGenerated}
@@ -542,7 +616,7 @@ export default function TemplatesPage() {
               </button>
               <button
                 onClick={() => {
-                  setAIFormData({ position: '', description: '', fields: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium' });
+                  setAIFormData({ position: '', duration: 60, experienceLevel: '2-5 years', interviewDifficulty: 'Medium', sections: [{ name: '', details: '', questionCount: 5 }] });
                   setGeneratedTemplate(null);
                 }}
                 className="px-6 py-3 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-colors backdrop-blur-sm"
@@ -550,21 +624,21 @@ export default function TemplatesPage() {
                 Discard
               </button>
               <button
-                onClick={handleGenerateTemplate}
+                onClick={(e) => handleGenerateTemplate(e, regenerationEnhancement || undefined)}
                 disabled={aiGenerating}
                 className="inline-flex items-center px-6 py-3 bg-white/20 text-white font-medium rounded-lg hover:bg-white/30 transition-colors disabled:opacity-50"
               >
                 {aiGenerating ? (
                   <>
                     <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></span>
-                    Regenerating...
+                    {regenerationEnhancement ? 'Regenerating with enhancements...' : 'Regenerating...'}
                   </>
                 ) : (
                   <>
                     <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                    Regenerate
+                    {regenerationEnhancement ? 'Regenerate with Enhancements' : 'Regenerate'}
                   </>
                 )}
               </button>

@@ -456,6 +456,13 @@ export const firebaseInterviewsService = {
     });
   },
 
+  async updateAISummary(interviewId: string, aiSummary: any) {
+    await update(ref(database, `interviews/${interviewId}`), {
+      aiSummary,
+      updatedAt: Date.now(),
+    });
+  },
+
   async delete(interviewId: string) {
     await remove(ref(database, `interviews/${interviewId}`));
   },
