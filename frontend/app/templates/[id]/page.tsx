@@ -554,10 +554,10 @@ export default function TemplateDetailPage() {
                                     <div className="flex items-center gap-2 flex-wrap">
                                       <p className="text-white font-semibold">{question.text}</p>
                                       {question.difficulty && (
-                                        <span className={`px-2 py-1 text-xs font-semibold rounded-full border whitespace-nowrap ${
-                                          question.difficulty === 'easy' ? 'bg-green-900/40 text-green-300 border-green-500/60' :
-                                          question.difficulty === 'medium' ? 'bg-yellow-900/40 text-yellow-300 border-yellow-500/60' :
-                                          'bg-red-900/40 text-red-300 border-red-500/60'
+                                        <span className={`px-3 py-1.5 text-xs font-bold rounded-full border whitespace-nowrap ${
+                                          question.difficulty.toLowerCase() === 'easy' ? 'bg-green-500/20 text-green-300 border-green-500/40' :
+                                          question.difficulty.toLowerCase() === 'medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40' :
+                                          'bg-red-500/20 text-red-300 border-red-500/40'
                                         }`}>
                                           {question.difficulty.charAt(0).toUpperCase() + question.difficulty.slice(1)}
                                         </span>

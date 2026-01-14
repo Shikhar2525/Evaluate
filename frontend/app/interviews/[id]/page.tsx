@@ -798,7 +798,11 @@ export default function InterviewDetailPage() {
                             {/* Right Section: Badges, Rating, Arrow */}
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                               {iq.difficulty && (
-                                <span className="text-xs font-bold px-2 py-0.5 rounded bg-red-500/30 text-red-200 uppercase">
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase ${
+                                  iq.difficulty.toLowerCase() === 'easy' ? 'bg-green-500/30 text-green-200' :
+                                  iq.difficulty.toLowerCase() === 'medium' ? 'bg-yellow-500/30 text-yellow-200' :
+                                  'bg-red-500/30 text-red-200'
+                                }`}>
                                   {iq.difficulty.charAt(0)}
                                 </span>
                               )}

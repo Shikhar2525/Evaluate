@@ -46,7 +46,7 @@ export default function SignUp() {
         formData.firstName,
         formData.lastName,
       );
-      router.push('/templates');
+      router.push('/dashboard');
     } catch (err: any) {
       let errorMessage = 'Sign up failed';
       
