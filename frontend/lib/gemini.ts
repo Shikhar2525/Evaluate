@@ -32,6 +32,31 @@ export interface GeneratedQuestion {
   codeLanguage?: string;
 }
 
+// Calculate confidence score based on interview performance
+const calculateConfidenceScore = (interviewData: any, allQuestions: any[]): number => {
+  if (!allQuestions || allQuestions.length === 0) return 0;
+
+  // Count rated vs skipped questions
+  const ratedQuestions = allQuestions.filter((q: any) => q.rating && q.rating >= 1 && q.rating <= 5);
+  const skippedQuestions = allQuestions.filter((q: any) => q.skipped);
+  const totalQuestions = allQuestions.length;
+
+  // Calculate average rating (normalized to 0-100)
+  const averageRating = ratedQuestions.length > 0 
+    ? (ratedQuestions.reduce((sum: number, q: any) => sum + (q.rating || 0), 0) / ratedQuestions.length) / 5 * 100
+    : 0;
+
+  // Calculate participation percentage
+  const participationPercentage = (ratedQuestions.length / totalQuestions) * 100;
+
+  // Weight the factors
+  // 60% from average rating, 40% from participation
+  const confidenceScore = Math.round((averageRating * 0.6) + (participationPercentage * 0.4));
+
+  // Ensure score is between 0 and 100
+  return Math.max(0, Math.min(100, confidenceScore));
+};
+
 export interface GeneratedTemplate {
   name: string;
   description: string;
@@ -314,6 +339,33 @@ Return ONLY valid JSON, no markdown or additional text.`;
 
       // Parse the JSON response
       const summary = JSON.parse(content);
+      
+      // Calculate correct confidence score based on interview data
+      const confidenceScore = calculateConfidenceScore(interviewData, allQuestions);
+      
+      // Update the confidence score in the summary
+      if (summary.confidence) {
+        summary.confidence.score = confidenceScore;
+        
+        // Update level and hiring_likelihood based on correct score
+        if (confidenceScore >= 80) {
+          summary.confidence.level = 'Very Strong Candidate';
+          summary.confidence.hiring_likelihood = 'Very Likely to be hired';
+        } else if (confidenceScore >= 65) {
+          summary.confidence.level = 'Strong Candidate';
+          summary.confidence.hiring_likelihood = 'Likely to be hired';
+        } else if (confidenceScore >= 50) {
+          summary.confidence.level = 'Moderate Candidate';
+          summary.confidence.hiring_likelihood = 'Moderate Fit';
+        } else if (confidenceScore >= 35) {
+          summary.confidence.level = 'Weak Candidate';
+          summary.confidence.hiring_likelihood = 'Below Average';
+        } else {
+          summary.confidence.level = 'Not a Good Fit';
+          summary.confidence.hiring_likelihood = 'Not a Good Fit';
+        }
+      }
+      
       return summary;
     } catch (error) {
       if (error instanceof Error) {

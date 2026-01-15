@@ -139,9 +139,20 @@ export default function InterviewConductPage() {
   const rawQuestions = (() => {
     const questions: any[] = [];
     if (interview?.sections) {
-      // Get section order from template sections
+      // Get section order from interview data (order selected during interview creation)
+      const sectionOrder = interview.sectionOrder || [];
       const templateSections = interview?.template?.sections ? Object.values(interview.template.sections) : [];
-      const sortedSections = [...templateSections].sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+      
+      // Sort sections based on the sectionOrder saved during interview creation
+      let sortedSections = [...templateSections];
+      if (sectionOrder.length > 0) {
+        sortedSections = sectionOrder
+          .map(sectionId => templateSections.find((s: any) => s.id === sectionId))
+          .filter(Boolean);
+        // Add any sections that weren't in sectionOrder
+        const remainingSections = templateSections.filter((s: any) => !sectionOrder.includes(s.id));
+        sortedSections.push(...remainingSections);
+      }
       
       sortedSections.forEach((templateSection: any) => {
         const section = interview.sections[templateSection.id];
@@ -853,8 +864,23 @@ export default function InterviewConductPage() {
             
             <div className="p-4 space-y-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#3F9AAE]/50 scrollbar-track-slate-900">
               {interview?.template?.sections && Object.values(interview.template.sections).length > 0 ? (
-                [...Object.values(interview.template.sections)]
-                  .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+                (() => {
+                  // Sort sections based on the sectionOrder saved during interview creation
+                  const sectionOrder = interview.sectionOrder || [];
+                  const allSections = [...Object.values(interview.template.sections)] as any[];
+                  
+                  let sortedSections = allSections;
+                  if (sectionOrder.length > 0) {
+                    sortedSections = sectionOrder
+                      .map(sectionId => allSections.find((s: any) => s.id === sectionId))
+                      .filter(Boolean);
+                    // Add any sections that weren't in sectionOrder
+                    const remainingSections = allSections.filter((s: any) => !sectionOrder.includes(s.id));
+                    sortedSections.push(...remainingSections);
+                  }
+                  
+                  return sortedSections;
+                })()
                   .map((section: any, sectionIdx: number) => {
                     const sectionColor = getSectionColor(section.id);
                     const sectionQuestions = allQuestions.filter((q: any) => q.sectionId === section.id);
