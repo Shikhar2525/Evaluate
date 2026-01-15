@@ -1,10 +1,12 @@
-# Interview Management System - Full Stack Application
+# 📋 Evaluate - Interview Management System
 
-A comprehensive interview management web application built with **Next.js** and **NestJS** for interviewers to create reusable templates, conduct structured interviews, and review performance.
+> **A modern interview management platform for interviewers to create reusable templates, conduct structured interviews, and review candidate performance.**
 
-**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+A comprehensive, serverless interview management web application built with **Next.js** and **Firebase** for seamless real-time collaboration and scalability.
 
-**Author:** Shikhar Mandloi, Senior Software Engineer
+🔗 **Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
+👤 **Author:** Shikhar Mandloi, Senior Software Engineer
 
 ## Project Overview
 
@@ -18,136 +20,140 @@ This application provides:
 
 ## Tech Stack
 
-### Backend
-- **NestJS** (TypeScript, REST API)
-- **PostgreSQL** (Database)
-- **TypeORM** (ORM)
-- **JWT** (Authentication)
-- **Bcrypt** (Password Hashing)
-
 ### Frontend
-- **Next.js 14** (App Router)
-- **React 18** (UI)
-- **TypeScript**
-- **Tailwind CSS** (Styling)
-- **Zustand** (State Management)
-- **Axios** (HTTP Client)
-- **React Syntax Highlighter** (Code Display)
+- **Next.js 14** (App Router, React 18)
+- **TypeScript** (Type-safe development)
+- **Tailwind CSS** (Modern styling)
+- **Firebase Authentication** (Secure user auth)
+- **Firebase Realtime Database** (Real-time data sync)
+- **Firebase Storage** (File uploads)
+- **Zustand** (State management)
+- **React Syntax Highlighter** (Code snippet display)
+
+### Infrastructure
+- **Vercel** (Frontend hosting & deployment)
+- **Firebase** (Backend-as-a-Service)
+  - Authentication
+  - Realtime Database
+  - Storage
+  - Security Rules
+- **Serverless Architecture** (No backend maintenance)
 
 ## Project Structure
 
 ```
 Evaluate/
-├── backend/                    # NestJS Backend
-│   ├── src/
-│   │   ├── auth/              # Authentication module
-│   │   │   ├── entities/      # User entity
-│   │   │   ├── dto/           # DTOs (Sign up, Sign in)
-│   │   │   ├── guards/        # JWT auth guard
-│   │   │   ├── strategies/    # JWT strategy
-│   │   │   ├── auth.service.ts
-│   │   │   ├── auth.controller.ts
-│   │   │   └── auth.module.ts
-│   │   │
-│   │   ├── templates/         # Templates module
-│   │   │   ├── entities/      # Template, Section, Question entities
-│   │   │   ├── dto/           # DTOs for template operations
-│   │   │   ├── templates.service.ts
-│   │   │   ├── templates.controller.ts
-│   │   │   └── templates.module.ts
-│   │   │
-│   │   ├── interviews/        # Interviews module
-│   │   │   ├── entities/      # Interview, InterviewQuestion, Feedback entities
-│   │   │   ├── dto/           # DTOs for interview operations
-│   │   │   ├── interviews.service.ts
-│   │   │   ├── interviews.controller.ts
-│   │   │   └── interviews.module.ts
-│   │   │
-│   │   ├── app.module.ts      # Root module
-│   │   └── main.ts            # App entry point
+├── frontend/                      # Next.js Frontend Application
+│   ├── app/
+│   │   ├── layout.tsx            # Root layout with SEO metadata
+│   │   ├── page.tsx              # Home page
+│   │   ├── sign-up/              # User registration
+│   │   │   └── layout.tsx        # Sign up page layout
+│   │   ├── sign-in/              # User login
+│   │   │   └── layout.tsx        # Sign in page layout
+│   │   ├── dashboard/            # User dashboard
+│   │   │   └── layout.tsx        # Dashboard layout
+│   │   ├── templates/            # Interview template management
+│   │   │   ├── layout.tsx        # Templates list layout
+│   │   │   └── [id]/             # Template detail/edit
+│   │   │       └── page.tsx      # Template editor
+│   │   └── interviews/           # Interview management
+│   │       ├── layout.tsx        # Interviews layout
+│   │       ├── page.tsx          # Past interviews list
+│   │       ├── new/              # Start new interview
+│   │       │   └── page.tsx      # Interview creation
+│   │       └── [id]/
+│   │           ├── page.tsx      # Interview review
+│   │           └── conduct/      # Interview conduct flow
+│   │               └── page.tsx  # Question-by-question flow
 │   │
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── .env                   # Environment variables
+│   ├── lib/
+│   │   ├── firebase.ts           # Firebase configuration
+│   │   ├── firebase-service.ts   # Firebase CRUD operations
+│   │   ├── store.ts              # Zustand state management
+│   │   ├── hooks.ts              # Custom React hooks
+│   │   ├── api.ts                # API utilities (Firebase)
+│   │   ├── gemini.ts             # Gemini AI integration
+│   │   ├── seo-metadata.ts       # SEO metadata utilities
+│   │   ├── seo-utils.ts          # SEO helper functions
+│   │   ├── structured-data.tsx   # Schema markup components
+│   │   └── components/
+│   │       ├── navbar.tsx        # Navigation bar
+│   │       ├── loader.tsx        # Loading indicator
+│   │       ├── rich-text-editor.tsx     # Text editor
+│   │       ├── rich-text-display.tsx    # Text display
+│   │       └── protected-page-wrapper.tsx # Auth wrapper
+│   │
+│   ├── public/
+│   │   ├── robots.txt            # SEO crawler configuration
+│   │   ├── manifest.json         # PWA manifest
+│   │   └── [icons]               # App icons & logos
+│   │
+│   ├── globals.css               # Global styles
+│   ├── package.json              # Dependencies
+│   ├── tailwind.config.ts        # Tailwind configuration
+│   ├── tsconfig.json             # TypeScript configuration
+│   ├── next.config.js            # Next.js configuration
+│   └── .env.local                # Environment variables
 │
-└── frontend/                   # Next.js Frontend
-    ├── app/
-    │   ├── layout.tsx         # Root layout
-    │   ├── sign-up/           # Sign up page
-    │   ├── sign-in/           # Sign in page
-    │   ├── templates/         # Templates listing & management
-    │   │   └── [id]/          # Template detail/edit
-    │   └── interviews/        # Interview pages
-    │       ├── new/           # Start new interview
-    │       ├── [id]/
-    │       │   ├── conduct/   # Interview flow
-    │       │   └── page.tsx   # Interview review
-    │       └── page.tsx       # Past interviews list
-    │
-    ├── lib/
-    │   ├── api.ts             # API client & endpoints
-    │   ├── store.ts           # Zustand stores
-    │   └── hooks.ts           # Custom React hooks
-    │
-    ├── components/            # Reusable components
-    ├── public/                # Static assets
-    ├── package.json
-    ├── tsconfig.json
-    ├── next.config.js
-    └── .env.local             # Environment variables
+├── firebase.json                 # Firebase configuration
+├── firebase-rules.json           # Firestore security rules
+├── [Documentation Files]         # MD documentation
+└── .git/                          # Git repository
 ```
 
-## Database Schema
+## Firebase Database Structure
 
-### Users Table
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  firstName VARCHAR(255) NOT NULL,
-  lastName VARCHAR(255) NOT NULL,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+The application uses Firebase Realtime Database with the following structure:
+
+```json
+{
+  "users/{userId}": {
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "photoURL": "https://...",
+    "createdAt": 1641234567890,
+    "updatedAt": 1641234567890
+  },
+  "templates/{userId}/{templateId}": {
+    "name": "Senior Frontend Engineer",
+    "description": "Template for senior frontend interviews",
+    "createdAt": 1641234567890,
+    "sections": {
+      "{sectionId}": {
+        "title": "JavaScript Fundamentals",
+        "order": 0,
+        "questions": {
+          "{questionId}": {
+            "text": "What is event delegation?",
+            "codeSnippet": "// code here",
+            "codeLanguage": "javascript",
+            "difficulty": "intermediate",
+            "order": 0
+          }
+        }
+      }
+    }
+  },
+  "interviews/{userId}/{interviewId}": {
+    "templateId": "{templateId}",
+    "candidateName": "John Smith",
+    "status": "completed",
+    "overallNotes": "...",
+    "createdAt": 1641234567890,
+    "questions": {
+      "{questionId}": {
+        "feedback": {
+          "notes": "Great answer",
+          "rating": 4.5
+        },
+        "skipped": false
+      }
+    }
+  }
+}
 ```
-
-### Templates Table
-```sql
-CREATE TABLE templates (
-  id UUID PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  userId UUID NOT NULL,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-);
-```
-
-### Sections Table
-```sql
-CREATE TABLE sections (
-  id UUID PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  order INT DEFAULT 0,
-  templateId UUID NOT NULL,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (templateId) REFERENCES templates(id) ON DELETE CASCADE
-);
-```
-
-### Questions Table
-```sql
-CREATE TABLE questions (
-  id UUID PRIMARY KEY,
-  text TEXT NOT NULL,
-  codeSnippet TEXT,
-  codeLanguage VARCHAR(50),
-  difficulty VARCHAR(50),
-  order INT DEFAULT 0,
-  sectionId UUID NOT NULL,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (sectionId) REFERENCES sections(id) ON DELETE CASCADE

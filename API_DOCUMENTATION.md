@@ -1,13 +1,17 @@
-# API Documentation
+# 📋 Evaluate - API Documentation
 
 **Author:** Shikhar Mandloi, Senior Software Engineer
 
 **Live Frontend:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
 
-## Base URL
-```
-http://localhost:3001
-```
+**Note:** Evaluate uses Firebase for backend instead of REST APIs. This document describes the Firebase service layer.
+
+## Firebase Backend Structure
+
+Instead of traditional REST endpoints, Evaluate uses:
+- **Firebase Authentication** - User management
+- **Firebase Realtime Database** - Data storage and sync
+- **Firebase Storage** - File uploads
 
 ## Authentication
 All endpoints (except `/auth/sign-up` and `/auth/sign-in`) require JWT token in the Authorization header:

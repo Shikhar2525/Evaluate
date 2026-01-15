@@ -1,11 +1,13 @@
-# Free Deployment Guide
+# 📋 Evaluate - Free Deployment Guide
 
 **Author:** Shikhar Mandloi, Senior Software Engineer
 
 **Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
 
 ## Overview
-Deploy your Interview Evaluation System for **free with maximum storage** using the following stack:
+Deploy **Evaluate** Interview Management System with **zero backend infrastructure costs** using Firebase and Vercel.
+
+This is a **serverless architecture** - no NestJS backend required!
 
 | Component | Service | Plan | Cost | Storage |
 |-----------|---------|------|------|---------|

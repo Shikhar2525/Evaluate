@@ -1,4 +1,4 @@
-# Interview Management System - Documentation Index
+# 📋 Evaluate - Documentation Index
 
 **Author:** Shikhar Mandloi, Senior Software Engineer
 

@@ -1,11 +1,13 @@
-# Deploy on Vercel (Complete Guide)
+# 📋 Deploy Evaluate on Vercel (Complete Guide)
 
 ## Overview
-Deploy your Next.js frontend on **Vercel for free** with automatic deployments from GitHub.
+Deploy **Evaluate** Next.js frontend on **Vercel for free** with automatic deployments from GitHub.
 
 **Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
 
 **Author:** Shikhar Mandloi, Senior Software Engineer
+
+**Evaluate Backend:** Firebase (No NestJS server needed!)
 
 **Cost: $0/month**
 **Bandwidth: 100GB/month (free tier)**
@@ -42,16 +44,19 @@ git push -u origin main
 
 ---
 
-## Step 2: Setup Backend (Required for Vercel Frontend)
+## Step 2: Setup Backend (Firebase - NO SETUP REQUIRED!)
+
+**Good news!** Evaluate uses Firebase instead of traditional backend servers.
 
 ### Live Deployment Reference
 **Frontend:** http://evaluate-nine.vercel.app/
+**Backend:** Firebase (Google Cloud Services)
 
-### Option A: Use Render.com (FREE, Recommended)
-
-#### 2.1 Create Render Account
-1. Go to [render.com](https://render.com)
-2. Sign up with GitHub
+**No need to deploy a NestJS server!** All backend operations are handled by Firebase:
+- Authentication via Firebase Auth
+- Database via Firebase Realtime Database
+- Storage via Firebase Storage
+- Security via Firebase Security Rules
 
 #### 2.2 Create PostgreSQL Database
 1. Click **New +** → **PostgreSQL**

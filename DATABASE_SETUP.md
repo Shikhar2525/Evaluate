@@ -1,9 +1,13 @@
-# Database Setup Instructions
+# 📋 Evaluate - Firebase Database Guide
 
 **Author:** Shikhar Mandloi, Senior Software Engineer
 
+## Overview
+Evaluate uses **Firebase Realtime Database** instead of PostgreSQL. This guide explains the data structure and Firebase setup.
+
 ## Prerequisites
-- PostgreSQL 12+
+- Google Account (for Firebase)
+- Firebase Project created
 - Node.js 16+
 
 ## Setup Steps

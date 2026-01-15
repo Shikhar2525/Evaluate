@@ -1,4 +1,8 @@
-# Quick Start Guide
+# 📋 Evaluate - Quick Start Guide
+
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
 
 ## Prerequisites
 - Node.js 16+ & npm
