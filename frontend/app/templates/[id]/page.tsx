@@ -9,8 +9,113 @@ import Link from 'next/link';
 import RichTextEditor from '@/lib/components/rich-text-editor';
 import RichTextDisplay from '@/lib/components/rich-text-display';
 import Loader from '@/lib/components/loader';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
 
 export default function TemplateDetailPage() {
+  // Format code (synchronous formatter)
+  const formatCode = (code: string, language: string): string => {
+    try {
+      if (!code || typeof code !== 'string') {
+        return code;
+      }
+
+      // For JavaScript/TypeScript
+      if (language === 'javascript' || language === 'typescript') {
+        let formatted = code;
+        let indentLevel = 0;
+        
+        // First, split multiple statements on same line into separate lines
+        // Only add newline if there isn't already one after the semicolon
+        formatted = formatted.replace(/;(?=\s*(?!\n)[a-zA-Z0-9_$({])/g, ';\n');
+        
+        const lines = formatted.split('\n');
+        const result: string[] = [];
+
+        for (let line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            result.push('');
+            continue;
+          }
+
+          // Decrease indent for closing braces
+          if (trimmed.startsWith('}') || trimmed.startsWith(']') || trimmed.startsWith(')')) {
+            indentLevel = Math.max(0, indentLevel - 1);
+          }
+
+          // Add line with proper indentation
+          result.push('  '.repeat(indentLevel) + trimmed);
+
+          // Increase indent for opening braces
+          if (trimmed.endsWith('{') || trimmed.endsWith('[') || trimmed.endsWith('(')) {
+            indentLevel++;
+          } else if (trimmed.includes('{')) {
+            const openCount = (trimmed.match(/{/g) || []).length;
+            const closeCount = (trimmed.match(/}/g) || []).length;
+            indentLevel += openCount - closeCount;
+          }
+        }
+
+        return result.join('\n');
+      }
+
+      // For JSON
+      if (language === 'json') {
+        const parsed = JSON.parse(code);
+        return JSON.stringify(parsed, null, 2);
+      }
+
+      // For other languages, return as-is
+      return code;
+    } catch (error) {
+      // If formatting fails, return original code
+      return code;
+    }
+  };
+
+  // Get syntax highlighting
+  const getHighlightedCode = (code: string, language: string) => {
+    try {
+      if (!code || typeof code !== 'string') {
+        return '';
+      }
+      
+      const langMap: { [key: string]: string } = {
+        javascript: 'javascript',
+        typescript: 'typescript',
+        python: 'python',
+        java: 'java',
+        cpp: 'cpp',
+        csharp: 'csharp',
+        go: 'go',
+        rust: 'rust',
+        php: 'php',
+        ruby: 'ruby',
+        swift: 'swift',
+        kotlin: 'kotlin',
+        html: 'html',
+        css: 'css',
+        sql: 'sql',
+        bash: 'bash',
+        json: 'json',
+        yaml: 'yaml',
+        plaintext: 'plaintext',
+      };
+      
+      const hlLanguage = langMap[language] || 'javascript';
+      const highlighted = hljs.highlight(code, { language: hlLanguage, ignoreIllegals: true });
+      return highlighted?.value || code;
+    } catch (error) {
+      try {
+        const highlighted = hljs.highlightAuto(code);
+        return highlighted?.value || code;
+      } catch {
+        return code;
+      }
+    }
+  };
+
   useLayoutEffect(() => {
     // Use setTimeout to ensure DOM is fully rendered
     setTimeout(() => {
@@ -671,8 +776,55 @@ export default function TemplateDetailPage() {
                                       {copiedCode === question.id ? '✓ Copied' : 'Copy'}
                                     </button>
                                   </div>
-                                  <div className="p-4 bg-slate-900 rounded-lg text-slate-100 font-mono text-sm overflow-x-auto max-h-60 border border-[#3F9AAE]/30">
-                                    <pre className="whitespace-pre-wrap break-words">{question.codeSnippet}</pre>
+                                  <div className="bg-slate-950/95 rounded-xl border-2 border-[#3F9AAE]/20 shadow-2xl overflow-hidden">
+                                    {/* Code Editor Header */}
+                                    <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-4 py-2 border-b border-[#3F9AAE]/20 flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex gap-1.5">
+                                          <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                                          <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                                          <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                                        </div>
+                                        <span className="text-[#79C9C5]/60 text-xs font-mono ml-3">
+                                          code.{question.codeLanguage === 'javascript' ? 'js' : question.codeLanguage === 'typescript' ? 'ts' : question.codeLanguage === 'python' ? 'py' : question.codeLanguage === 'java' ? 'java' : question.codeLanguage === 'cpp' ? 'cpp' : question.codeLanguage === 'csharp' ? 'cs' : question.codeLanguage === 'go' ? 'go' : question.codeLanguage === 'rust' ? 'rs' : question.codeLanguage === 'php' ? 'php' : question.codeLanguage === 'ruby' ? 'rb' : question.codeLanguage === 'swift' ? 'swift' : question.codeLanguage === 'kotlin' ? 'kt' : question.codeLanguage === 'html' ? 'html' : question.codeLanguage === 'css' ? 'css' : question.codeLanguage === 'sql' ? 'sql' : question.codeLanguage === 'bash' ? 'sh' : question.codeLanguage === 'json' ? 'json' : question.codeLanguage === 'yaml' ? 'yml' : 'txt'}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Code Content with Line Numbers */}
+                                    <div className="flex max-h-96">
+                                      {/* Line Numbers */}
+                                      <div className="bg-slate-900/50 text-[#79C9C5]/30 text-right py-4 px-3 select-none border-r border-[#3F9AAE]/10 font-mono text-sm leading-6 overflow-y-auto">
+                                        {question.codeSnippet.split('\n').map((_: string, index: number) => (
+                                          <div key={index}>
+                                            {index + 1}
+                                          </div>
+                                        ))}
+                                      </div>
+                                      
+                                      {/* Code */}
+                                      <div className="flex-1 overflow-y-auto overflow-x-auto">
+                                        <div className="p-4 overflow-x-auto overflow-y-auto">
+                                          <pre className="m-0 bg-transparent">
+                                            <code
+                                              className={`font-mono text-sm leading-6 hljs language-${question.codeLanguage}`}
+                                              style={{ 
+                                                tabSize: 2, 
+                                                display: 'block', 
+                                                whiteSpace: 'pre-wrap',
+                                                wordWrap: 'break-word',
+                                                wordBreak: 'break-word',
+                                                backgroundColor: 'transparent',
+                                                backgroundImage: 'none'
+                                              }}
+                                              dangerouslySetInnerHTML={{
+                                                __html: getHighlightedCode(formatCode(question.codeSnippet, question.codeLanguage || 'javascript'), question.codeLanguage || 'javascript')
+                                              }}
+                                            />
+                                          </pre>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               )}

@@ -40,6 +40,43 @@ export default function InterviewConductPage() {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [isExecuting, setIsExecuting] = useState(false);
   const [isFormatting, setIsFormatting] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(320); // 80 * 4 = 320px
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Sidebar width constraints
+  const MIN_SIDEBAR_WIDTH = 200;
+  const MAX_SIDEBAR_WIDTH = 500;
+
+  // Handle sidebar resize
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = e.clientX;
+      if (newWidth >= MIN_SIDEBAR_WIDTH && newWidth <= MAX_SIDEBAR_WIDTH) {
+        setSidebarWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // Initialize start time from localStorage
   useEffect(() => {
@@ -150,6 +187,17 @@ export default function InterviewConductPage() {
     }
     // Don't show visited status - either it's saved (with rating) or unanswered
     return 'unanswered';
+  };
+
+  // Toggle section collapse state
+  const toggleSectionCollapse = (sectionId: string) => {
+    const newCollapsed = new Set(collapsedSections);
+    if (newCollapsed.has(sectionId)) {
+      newCollapsed.delete(sectionId);
+    } else {
+      newCollapsed.add(sectionId);
+    }
+    setCollapsedSections(newCollapsed);
   };
 
   // Timer effect
@@ -747,9 +795,151 @@ export default function InterviewConductPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-4xl">
+      {/* Main Content with Sidebar */}
+      <div className="flex-1 flex relative">
+        {/* Sidebar - Questions Navigator */}
+        <div 
+            className="bg-gradient-to-b from-slate-900 to-slate-950 border-r border-t border-[#3F9AAE]/30 overflow-hidden flex flex-col"
+            style={{ width: `${sidebarWidth}px` }}
+          >
+            <div className="p-6 sticky top-0 bg-gradient-to-b from-slate-900 to-slate-900/80 backdrop-blur-sm border-b border-[#3F9AAE]/30 z-10">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="text-sm font-bold text-[#FFE2AF] tracking-widest mb-1">QUESTIONS</h3>
+                  <p className="text-xs text-[#79C9C5]/60">{currentQuestionIndex + 1} of {totalQuestions}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 space-y-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#3F9AAE]/50 scrollbar-track-slate-900">
+              {interview?.template?.sections && Object.values(interview.template.sections).length > 0 ? (
+                [...Object.values(interview.template.sections)]
+                  .sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
+                  .map((section: any, sectionIdx: number) => {
+                    const sectionColor = getSectionColor(section.id);
+                    const sectionQuestions = allQuestions.filter((q: any) => q.sectionId === section.id);
+                    const ratedQuestions = sectionQuestions.filter((q: any) => q.feedback?.rating && q.feedback.rating >= 1 && q.feedback.rating <= 5);
+                    
+                    return (
+                      <div key={section.id} className="space-y-2">
+                        {/* Section Header */}
+                        <button
+                          onClick={() => toggleSectionCollapse(section.id)}
+                          className="w-full px-3 py-2 rounded-lg border transition-all hover:shadow-md" 
+                          style={{
+                            borderColor: sectionColor.hex,
+                            backgroundColor: `rgba(${sectionColor.rgb}, 0.08)`
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: sectionColor.hex }}
+                            />
+                            <p className="text-xs font-bold text-white truncate flex-1 text-left">
+                              {section.title}
+                            </p>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {ratedQuestions.length === sectionQuestions.length ? (
+                                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/20 border border-emerald-500/40">
+                                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-xs font-bold text-emerald-400">{ratedQuestions.length}/{sectionQuestions.length}</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs font-semibold" style={{ color: sectionColor.hex }}>
+                                  {ratedQuestions.length}/{sectionQuestions.length}
+                                </span>
+                              )}
+                            </div>
+                            <svg 
+                              className={`w-4 h-4 flex-shrink-0 transition-transform duration-300 ${
+                                collapsedSections.has(section.id) ? 'rotate-0' : 'rotate-180'
+                              }`}
+                              style={{ color: sectionColor.hex }}
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                          </div>
+                        </button>
+                        
+                        {/* Questions in Section - Collapsible */}
+                        {!collapsedSections.has(section.id) && (
+                          <div className="space-y-1 ml-2 animate-in fade-in duration-200">
+                            {sectionQuestions.map((question: any, questionIdx: number) => {
+                              const globalIndex = allQuestions.findIndex((q: any) => q.id === question.id);
+                              const status = getQuestionStatus(question);
+                              const isCurrentQuestion = globalIndex === currentQuestionIndex;
+                              
+                              return (
+                                <button
+                                  key={question.id}
+                                  onClick={() => setCurrentQuestionIndex(globalIndex)}
+                                  className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all border border-transparent hover:border-[#3F9AAE]/50 ${
+                                    isCurrentQuestion
+                                      ? 'bg-gradient-to-r from-[#3F9AAE]/30 to-[#79C9C5]/20 border-[#3F9AAE]/50'
+                                      : 'hover:bg-slate-800/50'
+                                  }`}
+                                  title={`Q${globalIndex + 1}: ${question.text}`}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <div className="flex items-center justify-center min-w-6 h-6 rounded-full font-bold text-xs flex-shrink-0" style={{
+                                      backgroundColor: status === 'saved' ? '#10b981' : isCurrentQuestion ? sectionColor.hex : `rgba(${sectionColor.rgb}, 0.2)`,
+                                      color: status === 'saved' ? 'white' : isCurrentQuestion ? 'white' : sectionColor.hex,
+                                      border: `2px solid ${status === 'saved' ? '#10b981' : isCurrentQuestion ? sectionColor.hex : `rgba(${sectionColor.rgb}, 0.4)`}`
+                                    }}>
+                                      {status === 'saved' ? '✓' : status === 'skipped' ? '⊘' : globalIndex + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-xs font-semibold ${
+                                        status === 'saved' ? 'text-emerald-400' : isCurrentQuestion ? 'text-[#FFE2AF]' : 'text-[#79C9C5]'
+                                      }`}
+                                      style={{
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: sidebarWidth > 350 ? 2 : 1,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        wordBreak: 'break-word'
+                                      }}>
+                                        {question.text}
+                                      </p>
+                                      {question.codeSnippet && (
+                                        <p className="text-xs text-[#3F9AAE]/60 mt-0.5">📄 Has code</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-xs text-[#79C9C5]/50">No sections available</p>
+                </div>
+              )}
+            </div>
+        </div>
+
+        {/* Resize Handle */}
+        <div
+          onMouseDown={handleResizeStart}
+          className={`w-1 bg-gradient-to-b from-transparent via-[#3F9AAE]/50 to-transparent hover:via-[#3F9AAE] cursor-col-resize transition-colors ${
+            isResizing ? 'via-[#3F9AAE]' : ''
+          }`}
+          title="Drag to resize sidebar"
+        />
+
+        {/* Main Question Content */}
+        <div className="flex-1 flex items-center justify-center py-12 px-4 overflow-y-auto">
+          <div className="w-full max-w-4xl">
           {currentQuestion ? (
             <div className="mb-12">
               {/* Progress Bar */}
@@ -1168,8 +1358,11 @@ export default function InterviewConductPage() {
               </Link>
             </div>
           )}
+          </div>
         </div>
-      </div>      {/* Completion Review Modal */}
+      </div>
+
+      {/* Completion Review Modal */}
       {showCompletionModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 border border-[#3F9AAE]/30 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
