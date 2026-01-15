@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
 import { interviewsAPI } from '@/lib/api';
+import { database } from '@/lib/firebase';
+import { ref, get, update } from 'firebase/database';
 import Link from 'next/link';
 import Loader from '@/lib/components/loader';
 import hljs from 'highlight.js';
@@ -78,17 +80,44 @@ export default function InterviewConductPage() {
     };
   }, [isResizing]);
 
-  // Initialize start time from localStorage
+  // Initialize start time from Firebase (cross-device reliable)
   useEffect(() => {
-    const storedStartTime = localStorage.getItem(`interview_start_time_${interviewId}`);
-    if (storedStartTime) {
-      setStartTime(parseInt(storedStartTime, 10));
-    } else {
-      const newStartTime = Date.now();
-      setStartTime(newStartTime);
-      localStorage.setItem(`interview_start_time_${interviewId}`, newStartTime.toString());
-    }
-  }, [interviewId]);
+    if (!user || !interviewId) return;
+
+    const initializeStartTime = async () => {
+      try {
+        // Reference to interview metadata in Firebase
+        const interviewRef = ref(database, `user_interviews/${user.id}/${interviewId}`);
+        
+        // First, check if interview has a startTime stored in Firebase
+        const snapshot = await get(interviewRef);
+        const interviewData = snapshot.val();
+        
+        if (interviewData?.startTime) {
+          // Use existing start time from Firebase
+          setStartTime(interviewData.startTime);
+        } else {
+          // First time opening this interview - set start time in Firebase
+          const newStartTime = Date.now();
+          await update(interviewRef, { startTime: newStartTime });
+          setStartTime(newStartTime);
+        }
+      } catch (error) {
+        console.error('Error initializing start time:', error);
+        // Fallback to localStorage if Firebase fails
+        const storedStartTime = localStorage.getItem(`interview_start_time_${interviewId}`);
+        if (storedStartTime) {
+          setStartTime(parseInt(storedStartTime, 10));
+        } else {
+          const newStartTime = Date.now();
+          setStartTime(newStartTime);
+          localStorage.setItem(`interview_start_time_${interviewId}`, newStartTime.toString());
+        }
+      }
+    };
+
+    initializeStartTime();
+  }, [interviewId, user]);
 
   // Fetch interview on mount
   useEffect(() => {
@@ -766,7 +795,18 @@ export default function InterviewConductPage() {
                 return (
                   <button
                     key={question.id}
-                    onClick={() => setCurrentQuestionIndex(index)}
+                    onClick={() => {
+                      // Find which section this question belongs to
+                      const questionSection = getQuestionSection(question);
+                      // If the section is collapsed, expand it
+                      if (questionSection && collapsedSections.has((questionSection as any).id)) {
+                        const newCollapsed = new Set(collapsedSections);
+                        newCollapsed.delete((questionSection as any).id);
+                        setCollapsedSections(newCollapsed);
+                      }
+                      // Navigate to the question
+                      setCurrentQuestionIndex(index);
+                    }}
                     className="w-9 h-9 rounded-lg font-bold text-xs transition-all flex items-center justify-center flex-shrink-0 border-2 hover:scale-110 relative"
                     title={`Question ${index + 1} - ${questionSection ? (questionSection as any).title : ''}`}
                     style={{
@@ -878,7 +918,16 @@ export default function InterviewConductPage() {
                               return (
                                 <button
                                   key={question.id}
-                                  onClick={() => setCurrentQuestionIndex(globalIndex)}
+                                  onClick={() => {
+                                    // If section is collapsed, expand it
+                                    if (collapsedSections.has(section.id)) {
+                                      const newCollapsed = new Set(collapsedSections);
+                                      newCollapsed.delete(section.id);
+                                      setCollapsedSections(newCollapsed);
+                                    }
+                                    // Then navigate to the question
+                                    setCurrentQuestionIndex(globalIndex);
+                                  }}
                                   className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all border border-transparent hover:border-[#3F9AAE]/50 ${
                                     isCurrentQuestion
                                       ? 'bg-gradient-to-r from-[#3F9AAE]/30 to-[#79C9C5]/20 border-[#3F9AAE]/50'
@@ -1483,12 +1532,13 @@ export default function InterviewConductPage() {
 
       {/* Section Change Notification */}
       {showSectionNotification && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-black/40 absolute inset-0 backdrop-blur-sm" onClick={() => setShowSectionNotification(false)} />
-          <div className="relative bg-gradient-to-br from-[#3F9AAE] to-[#79C9C5] text-white px-12 py-8 rounded-2xl shadow-2xl border-2 border-[#FFE2AF]/30 text-center animate-bounce">
-            <p className="text-6xl mb-4">📍</p>
-            <h3 className="text-4xl font-black mb-2">{sectionNotificationText.replace('📍 ', '')}</h3>
-            <p className="text-[#FFE2AF] font-semibold text-sm">New Section</p>
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="bg-gradient-to-r from-[#3F9AAE] to-[#79C9C5] text-white px-6 py-3 rounded-lg shadow-lg border border-[#FFE2AF]/30 flex items-center gap-3 animate-in slide-in-from-top fade-in duration-300">
+            <span className="text-2xl">📍</span>
+            <div>
+              <p className="font-bold text-sm">{sectionNotificationText.replace('📍 ', '')}</p>
+              <p className="text-xs text-[#FFE2AF]/80">New Section</p>
+            </div>
           </div>
         </div>
       )}
