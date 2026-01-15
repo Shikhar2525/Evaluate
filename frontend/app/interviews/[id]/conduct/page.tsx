@@ -1359,43 +1359,8 @@ export default function InterviewConductPage() {
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between gap-4 px-4 mt-12">
-                <button
-                  onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
-                  disabled={currentQuestionIndex === 0}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-all"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Previous
-                </button>
-
-                <div className="text-center text-[#79C9C5] font-semibold">
-                  {currentQuestionIndex + 1} / {totalQuestions}
-                </div>
-
-                <button
-                  onClick={() => {
-                    if (!feedback.rating) {
-                      alert('Please provide a rating before moving to the next question');
-                      return;
-                    }
-                    if (currentQuestionIndex === totalQuestions - 1) {
-                      setShowSummary(true);
-                    } else {
-                      setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1));
-                    }
-                  }}
-                  className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 font-bold transition-all disabled:opacity-50"
-                  disabled={!feedback.rating}
-                  title={!feedback.rating ? "Please provide a rating before continuing" : ""}
-                >
-                  {currentQuestionIndex === totalQuestions - 1 ? 'Finish' : 'Next'}
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
+              <div className="mt-12 pb-24">
+                {/* Content goes here */}
               </div>
             </div>
           ) : (
@@ -1539,6 +1504,45 @@ export default function InterviewConductPage() {
               <p className="font-bold text-sm">{sectionNotificationText.replace('📍 ', '')}</p>
               <p className="text-xs text-[#FFE2AF]/80">New Section</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed Bottom Navigation */}
+      {currentQuestion && (
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-slate-950 via-slate-950/95 to-transparent pt-6 pb-6 px-6 border-t border-[#3F9AAE]/20 z-40">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+            <button
+              onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+              disabled={currentQuestionIndex === 0}
+              className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 disabled:opacity-30 disabled:cursor-not-allowed font-bold transition-all"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Previous
+            </button>
+
+            <div className="text-center text-[#79C9C5] font-semibold">
+              {currentQuestionIndex + 1} / {totalQuestions}
+            </div>
+
+            <button
+              onClick={() => {
+                if (currentQuestionIndex === totalQuestions - 1) {
+                  setShowCompletionModal(true);
+                } else {
+                  setCurrentQuestionIndex(Math.min(totalQuestions - 1, currentQuestionIndex + 1));
+                }
+              }}
+              className="flex items-center gap-2 px-6 py-3 border-2 border-[#3F9AAE]/50 text-[#79C9C5] rounded-lg hover:bg-[#3F9AAE]/10 font-bold transition-all"
+              title="Move to next question"
+            >
+              {currentQuestionIndex === totalQuestions - 1 ? 'Finish' : 'Next'}
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
           </div>
         </div>
       )}
