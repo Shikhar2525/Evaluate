@@ -185,49 +185,45 @@
 
 ```
 Evaluate/
-├── backend/
-│   ├── src/
-│   │   ├── auth/                 # Authentication module
-│   │   │   ├── entities/
-│   │   │   ├── dto/
-│   │   │   ├── guards/
-│   │   │   ├── strategies/
-│   │   │   ├── auth.service.ts
-│   │   │   ├── auth.controller.ts
-│   │   │   └── auth.module.ts
-│   │   ├── templates/            # Templates module
-│   │   │   ├── entities/
-│   │   │   ├── dto/
-│   │   │   ├── templates.service.ts
-│   │   │   ├── templates.controller.ts
-│   │   │   └── templates.module.ts
-│   │   ├── interviews/           # Interviews module
-│   │   │   ├── entities/
-│   │   │   ├── dto/
-│   │   │   ├── interviews.service.ts
-│   │   │   ├── interviews.controller.ts
-│   │   │   └── interviews.module.ts
-│   │   ├── app.module.ts
-│   │   └── main.ts
+├── frontend/                    # Next.js 14 frontend (primary application)
+│   ├── app/
+│   │   ├── page.tsx            # Home page
+│   │   ├── layout.tsx          # Root layout
+│   │   ├── layout-wrapper.tsx  # Auth wrapper
+│   │   ├── splash.tsx          # Splash screen
+│   │   ├── dashboard/          # Dashboard module
+│   │   ├── interviews/         # Interviews module
+│   │   │   ├── page.tsx
+│   │   │   ├── [id]/           # Interview detail
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── conduct/    # Interview conduct
+│   │   │   │       └── page.tsx
+│   │   │   └── new/            # Create interview
+│   │   ├── templates/          # Templates module
+│   │   ├── sign-in/            # Authentication
+│   │   ├── sign-up/
+│   │   └── admin/              # Admin dashboard
+│   ├── lib/
+│   │   ├── firebase.ts         # Firebase config
+│   │   ├── firebase-service.ts # Firebase operations
+│   │   ├── api.ts              # API layer
+│   │   ├── gemini.ts           # Gemini AI integration
+│   │   ├── hooks.ts            # Custom hooks
+│   │   ├── store.ts            # Zustand store
+│   │   └── components/         # Reusable components
+│   ├── public/                 # Static assets
 │   ├── package.json
 │   ├── tsconfig.json
-│   └── .env.example
+│   ├── next.config.js
+│   └── tailwind.config.ts
 │
-├── frontend/
-│   ├── app/
-│   │   ├── layout.tsx
-│   │   ├── sign-up/
-│   │   ├── sign-in/
-│   │   ├── templates/
-│   │   │   └── [id]/
-│   │   └── interviews/
-│   │       ├── new/
-│   │       ├── [id]/
-│   │       │   ├── conduct/
-│   │       │   └── page.tsx
-│   │       └── page.tsx
-│   ├── lib/
-│   │   ├── api.ts
+├── Configuration Files
+│   ├── firebase-rules.json     # Firebase security rules
+│   ├── QUICK_START.md
+│   ├── README.md
+│   ├── ARCHITECTURE.md
+│   ├── DATABASE_SETUP.md
+│   └── Other documentation
 │   │   ├── store.ts
 │   │   └── hooks.ts
 │   ├── package.json

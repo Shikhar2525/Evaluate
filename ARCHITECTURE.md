@@ -217,53 +217,7 @@ Frontend                         Backend                    Database
 ## Module Structure
 
 ### Auth Module
-```
-auth/
-├── entities/
-│   └── user.entity.ts           # User data model
-├── dto/
-│   ├── sign-up.dto.ts           # Registration validation
-│   └── sign-in.dto.ts           # Login validation
-├── guards/
-│   └── jwt-auth.guard.ts        # Route protection
-├── strategies/
-│   └── jwt.strategy.ts          # JWT verification
-├── auth.service.ts              # Business logic
-├── auth.controller.ts           # API routes
-└── auth.module.ts               # Module definition
-```
-
-### Templates Module
-```
-templates/
-├── entities/
-│   ├── template.entity.ts       # Template data
-│   ├── section.entity.ts        # Section data
-│   └── question.entity.ts       # Question data
-├── dto/
-│   ├── create-template.dto.ts
-│   ├── update-template.dto.ts
-│   ├── create-section.dto.ts
-│   └── create-question.dto.ts
-├── templates.service.ts         # Business logic
-├── templates.controller.ts      # API routes
-└── templates.module.ts          # Module definition
-```
-
-### Interviews Module
-```
-interviews/
-├── entities/
-│   ├── interview.entity.ts      # Interview data
-│   ├── interview-question.entity.ts  # Question tracking
-│   └── feedback.entity.ts       # Feedback data
-├── dto/
-│   ├── create-interview.dto.ts
-│   └── update-feedback.dto.ts
-├── interviews.service.ts        # Business logic
-├── interviews.controller.ts     # API routes
-└── interviews.module.ts         # Module definition
-```
+**Note:** The project has migrated from a backend NestJS API to a Firebase-based serverless architecture. DTOs and backend modules are no longer used. All data operations are handled directly through Firebase Realtime Database via the frontend client.
 
 ## Database Schema Relations
 

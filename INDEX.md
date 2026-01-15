@@ -127,10 +127,10 @@
 2. Review [QUICK_START.md#Security-Notes](./QUICK_START.md) - Production checklist
 3. Follow your chosen deployment platform's guide
 
-### Add a new API endpoint
-1. Check [ARCHITECTURE.md#Module-Structure](./ARCHITECTURE.md) - Module design
-2. Review similar endpoints in [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
-3. Follow the module pattern (entity → DTO → service → controller)
+### Add a new feature
+1. Check [ARCHITECTURE.md#Frontend-Structure](./ARCHITECTURE.md) - Project structure
+2. Review similar features in the codebase
+3. Use Firebase for all data operations
 
 ### Debug database issues
 1. Read [DATABASE_SETUP.md#Troubleshooting](./DATABASE_SETUP.md)

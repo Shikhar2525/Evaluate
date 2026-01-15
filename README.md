@@ -1,5 +1,7 @@
 # 📋 Evaluate - Interview Management System
 
+![Evaluate Logo](./frontend/public/logo.png)
+
 > **A modern interview management platform for interviewers to create reusable templates, conduct structured interviews, and review candidate performance.**
 
 A comprehensive, serverless interview management web application built with **Next.js** and **Firebase** for seamless real-time collaboration and scalability.
@@ -248,85 +250,7 @@ CREATE TABLE feedback (
 
 ## Data Models
 
-### User DTO
-```typescript
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Template DTO
-```typescript
-interface Template {
-  id: string;
-  name: string;
-  description?: string;
-  sections: Section[];
-  userId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Section DTO
-```typescript
-interface Section {
-  id: string;
-  title: string;
-  order: number;
-  questions: Question[];
-  templateId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Question DTO
-```typescript
-interface Question {
-  id: string;
-  text: string;
-  codeSnippet?: string;
-  codeLanguage?: string;
-  difficulty?: string;
-  order: number;
-  sectionId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Interview DTO
-```typescript
-interface Interview {
-  id: string;
-  templateId: string;
-  userId: string;
-  candidateName?: string;
-  status: 'draft' | 'in_progress' | 'completed';
-  overallNotes?: string;
-  questions: InterviewQuestion[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-### Feedback DTO
-```typescript
-interface Feedback {
-  id: string;
-  interviewQuestionId: string;
-  notes?: string;
-  rating?: number; // 1-5
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
+Data models are now managed through Firebase Realtime Database. See [DATABASE_SETUP.md](DATABASE_SETUP.md) for the current Firebase data structure.
 
 ## Frontend Page Structure
 
@@ -478,10 +402,10 @@ App
 
 ## Security Measures
 
-1. **JWT Authentication** - Secure token-based auth
-2. **Password Hashing** - Bcrypt with salt rounds
+1. **Firebase Authentication** - Secure token-based auth with Google
+2. **Password Hashing** - Firebase handles password security
 3. **CORS** - Configured for frontend domain
-4. **Input Validation** - DTO validation on backend
+4. **Firebase Security Rules** - Real-time database access control
 5. **User Data Isolation** - Users can only access their own data
 
 ## Performance Optimization
