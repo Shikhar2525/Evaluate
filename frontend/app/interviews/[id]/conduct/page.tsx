@@ -872,7 +872,7 @@ export default function InterviewConductPage() {
                   let sortedSections = allSections;
                   if (sectionOrder.length > 0) {
                     sortedSections = sectionOrder
-                      .map(sectionId => allSections.find((s: any) => s.id === sectionId))
+                      .map((sectionId: string) => allSections.find((s: any) => s.id === sectionId))
                       .filter(Boolean);
                     // Add any sections that weren't in sectionOrder
                     const remainingSections = allSections.filter((s: any) => !sectionOrder.includes(s.id));
