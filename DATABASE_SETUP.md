@@ -1,5 +1,7 @@
 # Database Setup Instructions
 
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
 ## Prerequisites
 - PostgreSQL 12+
 - Node.js 16+

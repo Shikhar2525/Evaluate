@@ -1,5 +1,9 @@
 # Interview Management System - Implementation Summary
 
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
 ## ✅ Completed Components
 
 ### Backend (NestJS)

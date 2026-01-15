@@ -2,6 +2,10 @@
 
 A comprehensive interview management web application built with **Next.js** and **NestJS** for interviewers to create reusable templates, conduct structured interviews, and review performance.
 
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
 ## Project Overview
 
 This application provides:

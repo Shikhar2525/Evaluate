@@ -3,6 +3,10 @@
 ## Overview
 Deploy your Next.js frontend on **Vercel for free** with automatic deployments from GitHub.
 
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
 **Cost: $0/month**
 **Bandwidth: 100GB/month (free tier)**
 **Latency: Global CDN**
@@ -39,6 +43,9 @@ git push -u origin main
 ---
 
 ## Step 2: Setup Backend (Required for Vercel Frontend)
+
+### Live Deployment Reference
+**Frontend:** http://evaluate-nine.vercel.app/
 
 ### Option A: Use Render.com (FREE, Recommended)
 

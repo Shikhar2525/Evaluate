@@ -1,5 +1,9 @@
 # SEO Implementation Guide
 
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
 ## Overview
 This document outlines the comprehensive SEO optimizations implemented in the Evaluate interview management platform.
 

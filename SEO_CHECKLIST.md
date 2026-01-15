@@ -1,5 +1,9 @@
 # SEO Optimization Checklist
 
+**Author:** Shikhar Mandloi, Senior Software Engineer
+
+**Live Demo:** [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/)
+
 ## ✅ Completed Implementations
 
 ### Technical SEO

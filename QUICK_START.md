@@ -60,7 +60,7 @@ npm run dev
 Frontend will be running on `http://localhost:3000`
 
 ### Step 4: Test the Application
-1. Open `http://localhost:3000` in your browser
+1. Open `http://localhost:3000` in your browser (or visit live demo at [http://evaluate-nine.vercel.app/](http://evaluate-nine.vercel.app/))
 2. Click "Sign up" and create an account
 3. Create a new interview template
 4. Add sections and questions
