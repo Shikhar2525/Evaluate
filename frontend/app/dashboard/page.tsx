@@ -376,7 +376,7 @@ export default function DashboardPage() {
                             {interview.status === 'completed' && '✓'} {interview.status}
                           </span>
                         </div>
-                        <p className="text-slate-400 text-sm font-light mb-4">{interview.template?.name || 'Unknown Template'}</p>
+                        <p className="text-slate-400 text-sm font-light mb-4">{interview.templateName || interview.template?.name || 'Interview'}</p>
                         <div className="flex items-center gap-5 text-xs text-slate-500 group-hover:text-slate-400 transition-colors font-medium">
                           <span className="flex items-center gap-2">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
