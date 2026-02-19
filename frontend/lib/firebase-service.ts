@@ -204,10 +204,11 @@ export const firebaseTemplatesService = {
     return template.val();
   },
 
-  async update(templateId: string, data: { name?: string; description?: string }) {
+  async update(templateId: string, data: { name?: string; description?: string; shareId?: string | null }) {
     const updates: any = { updatedAt: Date.now() };
     if (data.name) updates.name = data.name;
     if (data.description) updates.description = data.description;
+    if (data.shareId !== undefined) updates.shareId = data.shareId;
 
     await update(ref(database, `templates/${templateId}`), updates);
     const template = await get(ref(database, `templates/${templateId}`));
@@ -590,5 +591,126 @@ export const firebaseInterviewsService = {
         feedbackId: null,
       },
     );
+  },
+};
+
+// Shared Templates Service
+export const firebaseSharedTemplatesService = {
+  async shareTemplate(
+    templateId: string,
+    userId: string,
+    data: { expiresAt?: number | null } = {},
+  ) {
+    try {
+      console.log('shareTemplate called with templateId:', templateId, 'userId:', userId);
+      
+      const shareId = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const template = await get(ref(database, `templates/${templateId}`));
+      const templateData = template.val();
+
+      console.log('Template data:', templateData);
+
+      if (!templateData) {
+        throw new Error('Template not found');
+      }
+      
+      if (templateData.userId !== userId) {
+        throw new Error('You do not own this template');
+      }
+
+      const shareData = {
+        id: shareId,
+        templateId,
+        userId,
+        createdAt: Date.now(),
+        expiresAt: data.expiresAt || null,
+      };
+
+      console.log('Creating share with data:', shareData);
+      await set(ref(database, `shared/${shareId}`), shareData);
+      console.log('Share created successfully');
+      return shareData;
+    } catch (error: any) {
+      console.error('Error in shareTemplate:', error);
+      throw error;
+    }
+  },
+
+  async getSharedTemplate(shareId: string) {
+    const share = await get(ref(database, `shared/${shareId}`));
+    const shareData = share.val();
+
+    if (!shareData) {
+      throw new Error('Shared template not found');
+    }
+
+    // Check if share has expired
+    if (shareData.expiresAt && shareData.expiresAt < Date.now()) {
+      throw new Error('Shared template link has expired');
+    }
+
+    const template = await get(ref(database, `templates/${shareData.templateId}`));
+    const templateData = template.val();
+
+    if (!templateData) {
+      throw new Error('Template not found');
+    }
+
+    // Get the original owner's info
+    const owner = await get(ref(database, `users/${templateData.userId}`));
+    const ownerData = owner.val();
+
+    return {
+      share: shareData,
+      template: templateData,
+      owner: ownerData,
+    };
+  },
+
+  async listSharedByUser(userId: string) {
+    const shares = await get(ref(database, 'shared'));
+    const allShares = shares.val() || {};
+
+    return Object.values(allShares)
+      .filter((s: any) => s.userId === userId)
+      .filter((s: any) => !s.expiresAt || s.expiresAt >= Date.now());
+  },
+
+  async deleteShare(shareId: string, userId: string) {
+    const share = await get(ref(database, `shared/${shareId}`));
+    const shareData = share.val();
+
+    if (!shareData || shareData.userId !== userId) {
+      throw new Error('Share not found or not owned by user');
+    }
+
+    await remove(ref(database, `shared/${shareId}`));
+  },
+
+  async importTemplate(
+    shareId: string,
+    userId: string,
+    templateName?: string,
+    customTemplate?: any,
+  ) {
+    const shareResult = await this.getSharedTemplate(shareId);
+    const templateToImport = customTemplate || shareResult.template;
+
+    // Create a copy of the template for the current user
+    const newTemplateId = `template_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newTemplateName = templateName || `${templateToImport.name} (imported)`;
+
+    const newTemplateData = {
+      id: newTemplateId,
+      userId,
+      name: newTemplateName,
+      description: templateToImport.description || '',
+      sections: JSON.parse(JSON.stringify(templateToImport.sections || {})),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    await set(ref(database, `templates/${newTemplateId}`), newTemplateData);
+    return newTemplateData;
   },
 };

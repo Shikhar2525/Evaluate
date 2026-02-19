@@ -45,8 +45,8 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/5 bg-gradient-to-b from-white/8 via-white/2 to-transparent backdrop-blur-2xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="sticky top-0 z-50 border-b border-white/5 bg-gradient-to-b from-white/8 via-white/2 to-transparent backdrop-blur-2xl overflow-visible">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-3 group">
@@ -94,8 +94,8 @@ export default function Navbar() {
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4 relative">
-            <div className="relative" ref={profileMenuRef}>
+          <div className="flex items-center space-x-4 relative overflow-visible">
+            <div className="relative overflow-visible" ref={profileMenuRef}>
               <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className={`flex items-center space-x-3 px-3 py-2 rounded-xl transition-all duration-300 group ${
@@ -126,7 +126,7 @@ export default function Navbar() {
               </button>
 
               {showProfileMenu && (
-                <div className="absolute right-0 mt-3 w-80 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950/95 rounded-2xl shadow-2xl border border-white/15 py-0 z-20 backdrop-blur-xl overflow-hidden">
+                <div className="absolute right-0 mt-3 w-80 bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-slate-950/95 rounded-2xl shadow-2xl border border-white/15 py-0 z-[9999] backdrop-blur-xl overflow-hidden">
                   {/* Profile Header */}
                   <div className="bg-gradient-to-r from-cyan-500/15 via-blue-500/15 to-purple-500/15 px-6 py-6 flex items-center gap-4 border-b border-white/10">
                     {user?.photoURL ? (

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/lib/hooks';
-import { templatesAPI, objectToArray } from '@/lib/api';
+import { templatesAPI, sharedTemplatesAPI, objectToArray } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import Link from 'next/link';
 import RichTextEditor from '@/lib/components/rich-text-editor';
@@ -146,6 +146,13 @@ export default function TemplateDetailPage() {
   const [originalQuestion, setOriginalQuestion] = useState<any>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [showDeleteSectionConfirm, setShowDeleteSectionConfirm] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [shareId, setShareId] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [unsharing, setUnsharing] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -160,6 +167,12 @@ export default function TemplateDetailPage() {
         setTemplateLoading(true);
         const response = await templatesAPI.get(templateId);
         setTemplate(response.data);
+        
+        // Check if template has a shareId stored and restore the share link
+        if (response.data.shareId) {
+          setShareId(response.data.shareId);
+          setShareLink(`${window.location.origin}/shared/${response.data.shareId}`);
+        }
       } catch (err) {
         console.error('Failed to load template:', err);
         router.push('/templates');
@@ -368,6 +381,71 @@ export default function TemplateDetailPage() {
     setExpandedQuestions(newExpanded);
   };
 
+  const handleShareTemplate = async () => {
+    setSharing(true);
+    setShareError(null);
+    try {
+      console.log('Starting share process for template:', templateId);
+      console.log('Current user:', user);
+      console.log('Auth store user:', useAuthStore.getState().user);
+      
+      const response = await sharedTemplatesAPI.share(templateId);
+      console.log('Share response:', response);
+      
+      // Store shareId in template data
+      await templatesAPI.update(templateId, { shareId: response.data.id });
+      
+      const shareLinkUrl = `${window.location.origin}/shared/${response.data.id}`;
+      setShareId(response.data.id);
+      setShareLink(shareLinkUrl);
+      setShareError(null);
+    } catch (err: any) {
+      console.error('Failed to share template - Full error:', err);
+      console.error('Error message:', err?.message || 'Unknown error');
+      console.error('Error response:', err?.response?.data || err?.response || 'No response');
+      console.error('Error code:', err?.code || 'No code');
+      
+      const errorMsg = err?.message || 'Failed to create share link. Please try again.';
+      setShareError(errorMsg);
+      alert(`Error: ${errorMsg}`);
+    } finally {
+      setSharing(false);
+    }
+  };
+
+  const copyShareLink = () => {
+    if (shareLink) {
+      navigator.clipboard.writeText(shareLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleUnshareTemplate = async () => {
+    if (!shareId) return;
+    
+    setUnsharing(true);
+    setShareError(null);
+    try {
+      // Delete the share record
+      await sharedTemplatesAPI.unshare(shareId);
+      
+      // Remove shareId from template data
+      await templatesAPI.update(templateId, { shareId: null });
+      
+      setShareId(null);
+      setShareLink(null);
+      setShowShareModal(false);
+    } catch (err: any) {
+      console.error('Failed to unshare template:', err);
+      const errorMsg = err?.message || 'Failed to hide share link. Please try again.';
+      setShareError(errorMsg);
+      alert(`Error: ${errorMsg}`);
+    } finally {
+      setUnsharing(false);
+    }
+  }
+
   const copyCodeSnippet = (code: string, questionId: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(questionId);
@@ -497,6 +575,112 @@ export default function TemplateDetailPage() {
             </div>
           )}
         </div>
+
+        {/* Share Section */}
+        <div className="mb-12 bg-gradient-to-br from-white/8 to-white/3 rounded-2xl p-8 border border-cyan-500/20 shadow-2xl backdrop-blur-2xl">
+          <h2 className="text-sm font-bold text-cyan-300 mb-4 uppercase tracking-widest">Share Template</h2>
+          <div className="flex gap-3 flex-wrap">
+            <button
+              onClick={() => {
+                if (shareLink) {
+                  setShowShareModal(true);
+                } else {
+                  handleShareTemplate();
+                }
+              }}
+              disabled={sharing}
+              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-sm font-bold hover:shadow-lg hover:shadow-green-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C9.589 12.438 10 11.226 10 9.999c0-2.21-1.791-4-4-4S2 7.79 2 9.999c0 1.227.411 2.439 1.316 3.343m7.364 7.022c3.119-3.12 3.119-8.195 0-11.314m5.746-5.746c5.196 5.196 5.196 13.618 0 18.814M9 21H7.995c-1.122 0-2-.878-2-1.964V3.957c0-1.086.878-1.957 2-1.957H9m12 0h2.004c1.122 0 2 .877 2 1.964v16.078c0 1.086-.878 1.957-2 1.957h-2.004" />
+              </svg>
+              {sharing ? 'Creating link...' : shareLink ? 'Share Link Created' : 'Create Share Link'}
+            </button>
+            {shareLink && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-bold hover:shadow-lg hover:shadow-blue-500/40 transition-all flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                View Share Link
+              </button>
+            )}
+          </div>
+          
+          {/* Share Error Message */}
+          {shareError && (
+            <div className="mt-4 bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-300 text-sm">
+              <p className="font-semibold mb-1">❌ Error:</p>
+              <p>{shareError}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Share Modal */}
+        {showShareModal && shareLink && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-cyan-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-2">Share Template</h3>
+              <p className="text-cyan-300 text-sm mb-4">Share this link with others so they can preview and import your template:</p>
+              
+              <div className="space-y-3 mb-6">
+                <div className="bg-white/5 border border-cyan-500/30 rounded-lg p-4 break-all">
+                  <code className="text-cyan-300 text-sm">{shareLink}</code>
+                </div>
+                
+                <button
+                  onClick={copyShareLink}
+                  className={`w-full px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                    copiedLink
+                      ? 'bg-green-500/20 text-green-300 border border-green-500/50'
+                      : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50 hover:bg-cyan-500/30'
+                  }`}
+                >
+                  {copiedLink ? '✓ Copied to clipboard' : 'Copy Link'}
+                </button>
+              </div>
+
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 text-sm text-blue-200 mb-6">
+                <p className="font-semibold mb-1">💡 How it works:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>Others can view a preview of your template</li>
+                  <li>They can import it to their account</li>
+                  <li>The imported template is a copy they can edit</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="flex-1 px-4 py-2 bg-white/10 text-white rounded-lg text-sm font-bold hover:bg-white/20 transition-all"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleUnshareTemplate}
+                  disabled={unsharing}
+                  className="flex-1 px-4 py-2 bg-red-500/20 text-red-300 border border-red-500/50 rounded-lg text-sm font-bold hover:bg-red-500/30 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                >
+                  {unsharing ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-red-300/30 border-t-red-300 rounded-full animate-spin"></div>
+                      <span>Hiding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-4.803m5.596-3.856a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span>Hide Share</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6 mb-8">
           <h2 className="text-3xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">Sections</h2>

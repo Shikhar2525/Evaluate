@@ -3,6 +3,7 @@ import {
   firebaseAuthService,
   firebaseTemplatesService,
   firebaseInterviewsService,
+  firebaseSharedTemplatesService,
 } from './firebase-service';
 
 // Helper function to convert Firebase object to array
@@ -51,7 +52,7 @@ export const templatesAPI = {
     return { data: template };
   },
 
-  update: async (id: string, data: { name?: string; description?: string }) => {
+  update: async (id: string, data: { name?: string; description?: string; shareId?: string | null }) => {
     const template = await firebaseTemplatesService.update(id, data);
     return { data: template };
   },
@@ -268,5 +269,79 @@ export const interviewsAPI = {
   getPublicInterview: async (publicAccessCode: string) => {
     const interview = await firebaseInterviewsService.getByPublicCode(publicAccessCode);
     return { data: interview };
+  },
+};
+
+// Shared Templates API
+export const sharedTemplatesAPI = {
+  share: async (templateId: string, options?: { expiresAt?: number | null }) => {
+    const authStore = useAuthStore.getState();
+    if (!authStore.user) throw new Error('User not authenticated');
+    
+    try {
+      const share = await firebaseSharedTemplatesService.shareTemplate(
+        templateId,
+        authStore.user.id,
+        options,
+      );
+      return { data: share };
+    } catch (error: any) {
+      console.error('Share API error:', error);
+      throw error;
+    }
+  },
+
+  getShared: async (shareId: string) => {
+    try {
+      const result = await firebaseSharedTemplatesService.getSharedTemplate(shareId);
+      return { data: result };
+    } catch (error: any) {
+      console.error('Get shared API error:', error);
+      throw error;
+    }
+  },
+
+  listShared: async () => {
+    const authStore = useAuthStore.getState();
+    if (!authStore.user) throw new Error('User not authenticated');
+    
+    try {
+      const shares = await firebaseSharedTemplatesService.listSharedByUser(authStore.user.id);
+      return { data: shares };
+    } catch (error: any) {
+      console.error('List shared API error:', error);
+      throw error;
+    }
+  },
+
+  unshare: async (shareId: string) => {
+    const authStore = useAuthStore.getState();
+    if (!authStore.user) throw new Error('User not authenticated');
+    
+    try {
+      await firebaseSharedTemplatesService.deleteShare(shareId, authStore.user.id);
+      return { data: { shareId } };
+    } catch (error: any) {
+      console.error('Unshare API error:', error);
+      throw error;
+    }
+  },
+
+  import: async (shareId: string, templateName?: string, customTemplate?: any) => {
+    const authStore = useAuthStore.getState();
+    if (!authStore.user) throw new Error('User not authenticated');
+    
+    try {
+      const template = await firebaseSharedTemplatesService.importTemplate(
+        shareId,
+        authStore.user.id,
+        templateName,
+        customTemplate,
+      );
+      return { data: template };
+    } catch (error: any) {
+      console.error('Import API error:', error);
+      throw error;
+    }
   },
 };
