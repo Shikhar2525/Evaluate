@@ -1013,7 +1013,7 @@ export default function InterviewConductPage() {
         />
 
         {/* Main Question Content */}
-        <div className="flex-1 flex items-center justify-center py-12 px-4 overflow-y-auto">
+        <div className="flex-1 flex  justify-center py-12 px-4 overflow-y-auto">
           <div className="w-full max-w-4xl">
           {currentQuestion ? (
             <div className="mb-12">
